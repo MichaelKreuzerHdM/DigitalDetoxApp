@@ -1,0 +1,110 @@
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:id="@+id/linear"
+    android:weightSum="1"
+    android:orientation="vertical"
+    android:gravity="end"
+    android:padding="0dp"
+    android:paddingStart="0dp"
+    android:paddingEnd="0dp"
+    android:paddingLeft="0dp"
+    android:paddingTop="0dp"
+    android:paddingRight="0dp"
+    android:paddingBottom="0dp"
+    android:longClickable="false"
+    android:nestedScrollingEnabled="false"
+    >
+
+
+    <LinearLayout
+        android:orientation="vertical"
+        android:layout_width="match_parent"
+        android:layout_height="352dp"
+        android:weightSum="1"
+        android:layout_weight="0.71">
+
+        <fragment xmlns:android="http://schemas.android.com/apk/res/android"
+        xmlns:map="http://schemas.android.com/apk/res-auto"
+        xmlns:tools="http://schemas.android.com/tools"
+        android:id="@+id/map"
+        android:name="com.google.android.gms.maps.SupportMapFragment"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        tools:context=".MapsActivity"
+            android:layout_margin="0dp"
+        android:layout_marginLeft="0dp"
+        android:layout_marginTop="0dp"
+        android:layout_marginRight="0dp"
+        android:layout_marginBottom="0dp"
+            android:layout_weight="1.01" />
+
+    </LinearLayout>
+
+    <LinearLayout
+        android:orientation="vertical"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="43dp"
+            android:textAppearance="?android:attr/textAppearanceLarge"
+            android:id="@+id/textViewStatus"
+            android:layout_gravity="center_horizontal"
+            android:text="Mode: none"
+            android:gravity="center_horizontal" />
+
+        <SeekBar
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:id="@+id/radiusZoom"
+            android:paddingBottom="0dp"
+            android:layout_weight="0.1"
+            style="@style/Base.V12.Widget.AppCompat.AutoCompleteTextView"
+            android:indeterminate="false" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:weightSum="1"
+        android:gravity="clip_horizontal"
+        android:layout_marginBottom="0dp"
+        android:baselineAligned="false"
+        android:orientation="horizontal"
+        android:layout_gravity="bottom">
+
+        <Button
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Home"
+            android:id="@+id/btn_home_location"
+            android:padding="0dp"
+            android:paddingLeft="0dp"
+            android:paddingTop="0dp"
+            android:paddingRight="0dp"
+            android:paddingBottom="0dp"
+            android:enabled="true"
+            android:layout_margin="0dp"
+            android:clickable="true"
+            android:layout_weight="0.78" />
+
+        <Button
+            android:id="@+id/btn_work_location"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="0dp"
+            android:layout_marginRight="0dp"
+            android:text="Save as work location"
+            android:layout_weight="0.16"
+            style="@style/TextAppearance.AppCompat.Button"
+            android:layout_marginBottom="0dp"
+            android:layout_marginLeft="0dp"
+            android:layout_margin="0dp" />
+
+    </LinearLayout>
+
+</LinearLayout>
+
