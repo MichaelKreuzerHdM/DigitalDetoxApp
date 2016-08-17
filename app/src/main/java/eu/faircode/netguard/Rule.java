@@ -26,6 +26,8 @@ import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.content.res.XmlResourceParser;
+import android.database.Cursor;
+import android.database.sqlite.SQLiteDatabase;
 import android.net.TrafficStats;
 import android.os.Build;
 import android.os.Process;
@@ -83,6 +85,8 @@ public class Rule {
     public boolean changed;
 
     public boolean expanded = false;
+
+    public static final String MyPREFERENCES = "MyPrefs" ;
 
     private static List<PackageInfo> cachePackageInfo = null;
     private static Map<PackageInfo, String> cacheLabel = new HashMap<>();
@@ -215,6 +219,9 @@ public class Rule {
     }
 
     public static List<Rule> getRules(final boolean all, Context context) {
+        //MK
+        SharedPreferences prefsDDA = context.getSharedPreferences(MyPREFERENCES, Context.MODE_PRIVATE);
+
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
         SharedPreferences wifi = context.getSharedPreferences("wifi", Context.MODE_PRIVATE);
         SharedPreferences other = context.getSharedPreferences("other", Context.MODE_PRIVATE);
@@ -249,21 +256,9 @@ public class Rule {
             int eventType = xml.getEventType();
             while (eventType != XmlPullParser.END_DOCUMENT) {
                 if (eventType == XmlPullParser.START_TAG)
-                    //MK
-                    System.out.println("PACKAGE IS: " +  xml.getAttributeValue(null, "package"));
-                    ;
-                    if( xml.getAttributeValue(null, "package")=="com.android.browser"){
-                        Toast.makeText(context, "BROWSER GEFUNDEN: " + xml.getAttributeValue(null, "package") + " is: " + String.valueOf(xml.getAttributeBooleanValue(null, "blocked", false)), Toast.LENGTH_LONG).show();
-                    }
-
-
-
                     if ("wifi".equals(xml.getName())) {
                         String pkg = xml.getAttributeValue(null, "package");
                         boolean pblocked = xml.getAttributeBooleanValue(null, "blocked", false);
-
-
-
                         pre_wifi_blocked.put(pkg, pblocked);
 
                     } else if ("other".equals(xml.getName())) {
@@ -340,6 +335,8 @@ public class Rule {
                                 (show_disabled || rule.enabled))) {
 
                     rule.wifi_default = (pre_wifi_blocked.containsKey(info.packageName) ? pre_wifi_blocked.get(info.packageName) : default_wifi);
+
+
                     rule.other_default = (pre_other_blocked.containsKey(info.packageName) ? pre_other_blocked.get(info.packageName) : default_other);
                     rule.screen_wifi_default = default_screen_wifi;
                     rule.screen_other_default = default_screen_other;
@@ -353,6 +350,36 @@ public class Rule {
 
                     rule.apply = apply.getBoolean(info.packageName, true);
                     rule.notify = notify.getBoolean(info.packageName, true);
+
+
+                    //MK start
+                    System.out.println("PACKAGE IS: " + info.packageName);
+
+                    if(String.valueOf(rule).equals("Firefox") || String.valueOf(rule).equals("Browser")) {
+                        SharedPreferences.Editor prefsEditor = prefsDDA.edit();
+                        boolean workMode = prefsDDA.getBoolean("workMode",true);
+                        System.out.println("PREFERENCES: " + workMode);
+                        System.out.println("BROWSER FOUND: " + info.packageName + " Work mode is: " + workMode);
+
+                        //HIER WEITERMACHEN
+                        //Query database and check if this package is allowed
+                        //For test purposes: check if reading from database is working at all
+
+                        if(workMode){
+                            rule.wifi_blocked = true;
+                            rule.wifi_default = true;
+                            System.out.println("Leisure-related apps turned off.");
+                        }else{
+                            rule.wifi_blocked = false;
+                            rule.wifi_default = false;
+                            System.out.println("Leisure-related apps turned on.");
+                        }
+
+                    }else{
+                        System.out.println("BROWSER NOT FOUND");
+                    }
+                    //MK end
+
 
                     // Related packages
                     List<String> listPkg = new ArrayList<>();
@@ -378,6 +405,7 @@ public class Rule {
                     }
 
                     rule.updateChanged(default_wifi, default_other, default_roaming);
+
 
                     listRules.add(rule);
                 }

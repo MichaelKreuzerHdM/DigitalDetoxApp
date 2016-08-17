@@ -23,6 +23,8 @@ import android.app.Application;
 import android.util.Log;
 
 public class ApplicationEx extends Application {
+    private static boolean workMode = true;
+
     private static final String TAG = "NetGuard.App";
 
     private Thread.UncaughtExceptionHandler mPrevHandler;
@@ -41,5 +43,15 @@ public class ApplicationEx extends Application {
                     mPrevHandler.uncaughtException(thread, ex);
             }
         });
+    }
+
+    //Get work mode
+    public boolean getWorkMode() {
+        return workMode;
+    }
+
+    //Set work mode
+    public void setWorkMode(boolean workMode) {
+        this.workMode = workMode;
     }
 }

@@ -1,10 +1,13 @@
 package eu.faircode.netguard;
 
+import android.*;
+import android.Manifest;
 import android.app.Activity;
 import android.app.ActivityManager;
 import android.app.AlertDialog;
 import android.app.Notification;
 import android.app.PendingIntent;
+import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -19,7 +22,10 @@ import android.location.LocationManager;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
+import android.os.Looper;
+import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.FragmentActivity;
+import android.support.v4.app.NotificationCompat;
 import android.view.View;
 import android.widget.Button;
 import android.widget.LinearLayout;
@@ -73,15 +79,20 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     private static final String POINT_LATITUDE_KEY = "POINT_LATITUDE_KEY";
     private static final String POINT_LONGITUDE_KEY = "POINT_LONGITUDE_KEY";
 
-    private final Handler handler = new Handler();
-
     private static int currentRadius=5;
 
     private TextView textViewStatus;
 
+    //Handler for background UI task
+    private Handler handler = new Handler();
+    private Looper myLooper;
 
-    //private static final String PROX_ALERT_INTENT = "com.example.micha.googlemapdemoapp.ProximityIntentReceiver";
+    public static final String MyPREFERENCES = "MyPrefs" ;
+
     private static final String PROX_ALERT_INTENT = "com.example.micha.googlemapdemoapp.ProximityIntentReceiver";
+
+    //Register broadcast receiver in order to be able to stop and pause it later
+    android.content.Intent reg;
     /**
      * ATTENTION: This was auto-generated to implement the App Indexing API.
      * See https://g.co/AppIndexing/AndroidStudio for more information.
@@ -90,10 +101,19 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+
+
+        //Test for background worker
+
+
+
+
+
         //Trick to be able to add control elements to layout
         LinearLayout linear = (LinearLayout) findViewById(R.id.linear);
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_maps);
+        handler = new Handler();
 
         //add buttons dynamically
         /*
@@ -106,7 +126,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         ll.addView(myButton, lp);
         */
 
-        //HIER WEITERMACHEN
         //switchPref = (SwitchPreference)findViewById(R.layout.);
         /*locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
 
@@ -139,13 +158,11 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
             @Override
             public void onStartTrackingTouch(SeekBar seekBar) {
-
             }
 
             @Override
             public void onStopTrackingTouch(SeekBar seekBar) {
                 Toast.makeText(MapsActivity.this, "Radius for work location set to " + String.valueOf(currentRadius) + "m." , Toast.LENGTH_SHORT).show();
-                //callAlertBox(String.valueOf(currentRadius));
             }
         });
 
@@ -212,17 +229,27 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         */
     }
 
+    //When no lastknown location can be found, check for current location
+    private void startListening(){
+        //String locationProvider = LocationManager.NETWORK_PROVIDER;
+
+        //locationManager.requestLocationUpdates(locationProvider, 0, 0, locationListener);
+    }
+
     private void saveProximityAlertPoint() {
 
         Criteria criteria = new Criteria();
         criteria.setPowerRequirement(Criteria.POWER_HIGH);
         criteria.setAccuracy(Criteria.ACCURACY_FINE);
         provider = locationManager.getBestProvider(criteria, true);
+
+        //To implement: Check for permission (necessary for lollipop and higher)
         Location location = locationManager.getLastKnownLocation(provider);
         //Toast.makeText(this, "Providers are: " +  String.valueOf(locationManager.getAllProviders()), Toast.LENGTH_SHORT).show();
 
         if (location==null) {
             Toast.makeText(this, "No last known location. Aborting...", Toast.LENGTH_LONG).show();
+
             return;
         }
         Toast.makeText(this, "Proximity alert saved", Toast.LENGTH_SHORT).show();
@@ -274,10 +301,10 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         IntentFilter filter = new IntentFilter(PROX_ALERT_INTENT);
         registerReceiver(new ProximityIntentReceiver(), filter);
 
-
-        new Timer().scheduleAtFixedRate(new TimerTask(){
+        new Timer(true).scheduleAtFixedRate(new TimerTask(){
             @Override
             public void run(){
+
                 Criteria criteria = new Criteria();
                 criteria.setPowerRequirement(Criteria.POWER_HIGH);
                 criteria.setAccuracy(Criteria.ACCURACY_FINE);
@@ -289,33 +316,34 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 Location pointLocation = retrievelocationFromPreferences();
                 final float distance = location.distanceTo(pointLocation);
 
-                /*System.out.println("1 - Latitude: " + location.getLatitude() + ". Longitude: " + location.getLongitude());
-                System.out.println("2 - Latitude: " + pointLocation.getLatitude() + ". Longitude: " + pointLocation.getLongitude());
-
-                System.out.println("Distance: " + String.valueOf(distance));
-                */
-
                 final String mode;
                 final DecimalFormat df = new DecimalFormat("0.00");
                 final float tempLat=(float)location.getLatitude();
                 final float tempLng=(float)location.getLongitude();
                 final Context tempContext = getApplicationContext();
 
+                SharedPreferences prefsDDA = getSharedPreferences(MyPREFERENCES, Context.MODE_PRIVATE);
+                SharedPreferences.Editor prefsEditor = prefsDDA.edit();
+
                 if(distance<currentRadius){
                     mode="Work";
+                    prefsEditor.putBoolean("workMode", true);
+
                 }else{
                     mode="Leisure";
+                    prefsEditor.putBoolean("workMode", false);
                 }
+                prefsEditor.commit();
 
                 runOnUiThread(new Runnable() {
+
                     @Override
                     public void run() {
                         updateResults(mode, String.valueOf(df.format(distance)) + "m", tempLat, tempLng, tempContext);
-
                     }
                 });
 
-                //System.out.println("Distanz: " + location.getLatitude() + ". Longitude: " + location.getLongitude());
+                //System.out.println("Distance: " + location.getLatitude() + ". Longitude: " + location.getLongitude());
 
                 /*
                 Circle circle = mMap.addCircle(new CircleOptions()
@@ -327,11 +355,18 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             }
             int i = setUpMap();
         },0,5000);
-        TextView textViewStatus = (TextView) findViewById(R.id.textViewStatus);
-        //textViewStatus.setText("WORK MODE");
     }
 
     public void updateResults(String textStr, String distanceStr, float tempLat, float tempLng, Context context) {
+
+       /* Handler handler;
+        MapsActivity ref;
+
+        public updateTask (){
+
+        }
+        */
+
         Calendar c = Calendar.getInstance();
         c.setTimeZone(TimeZone.getTimeZone("Europe/Berlin"));
         int seconds = c.get(Calendar.SECOND);
@@ -352,19 +387,12 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             System.out.println("2 - Latitude: " + tempLat + ". Longitude: " + tempLng + ". Time: " + String.valueOf(hours) + ":" + String.valueOf(minutes) + ":" + String.valueOf(seconds));
             System.out.println("Distance: " + distanceStr);
         }
-        /*
-        NotificationManager notificationManager = (NotificationManager) globalContext.getSystemService(Context.NOTIFICATION_SERVICE);
-        Notification notification = createNotification();
 
-        int NOTIFICATION_ID = 1000;
-        notificationManager.notify(NOTIFICATION_ID, notification);
-
-        */
         TextView textViewStatus = (TextView) findViewById(R.id.textViewStatus);
         textViewStatus.setText(textStr + " " + distanceStr);
-
     }
 
+    //Create notifications (only needed in first development phase, but kept for possible later usage)
     private Notification createNotification() {
         Notification notification = new Notification();
 
@@ -389,6 +417,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         criteria.setPowerRequirement(Criteria.POWER_HIGH);
         criteria.setAccuracy(Criteria.ACCURACY_FINE);
         provider = locationManager.getBestProvider(criteria, false);
+        //To implement: Ask for permissions at run time
         Location location = locationManager.getLastKnownLocation(provider);
 
         if (location!=null) {
@@ -403,9 +432,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     }
 
     private void saveCoordinatesInPreferences(float latitude, float longitude) {
-        SharedPreferences prefs =
-                this.getSharedPreferences(getClass().getSimpleName(),
-                        Context.MODE_PRIVATE);
+        SharedPreferences prefs = this.getSharedPreferences(getClass().getSimpleName(), Context.MODE_PRIVATE);
         SharedPreferences.Editor prefsEditor = prefs.edit();
         prefsEditor.putFloat(POINT_LATITUDE_KEY, latitude);
         prefsEditor.putFloat(POINT_LONGITUDE_KEY, longitude);
@@ -417,7 +444,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         Location location = new Location("POINT_LOCATION");
         location.setLatitude(prefs.getFloat(POINT_LATITUDE_KEY, 0.0f));
         location.setLongitude(prefs.getFloat(POINT_LONGITUDE_KEY, 0.0f));
-
         return location;
     }
 
@@ -439,7 +465,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     public void onMapReady(GoogleMap googleMap) {
         mMap = googleMap;
 
-
         /*
         // Dummy markers
         // Add a marker in Sydney and move the camera
@@ -454,7 +479,9 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         */
 
         //Enable location
-        mMap.setMyLocationEnabled(true);
+        //if (ActivityCompat.checkSelfPermission((boolean)globalContext, Manifest.permission.ACCESS_FINE_LOCATION)) {
+            mMap.setMyLocationEnabled(true);
+        //}
 
         locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
 
@@ -475,8 +502,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         //Get buttons
         saveWorkLocation = (Button) findViewById(R.id.btn_work_location);
         saveHomeLocation = (Button) findViewById(R.id.btn_home_location);
-
-
 
         saveWorkLocation.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -539,6 +564,9 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         );
         AppIndex.AppIndexApi.end(client, viewAction);
         client.disconnect();
+
+       // unregisterReceiver(reg);
+        //super.onStop();
     }
 
     public void callAlertBox(String msgToDisplay) {
@@ -571,4 +599,24 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     }
 
 
+
+
+
+
+    public static class MyBackgroundMethodThread extends Thread {
+        MyBackgroundMethodThread mbm = new MyBackgroundMethodThread();
+
+        @Override
+        public void run() {
+            while (true) {
+                System.out.println("Executed!");
+                try {
+                    Thread.sleep(1000);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+
+    }
 }
