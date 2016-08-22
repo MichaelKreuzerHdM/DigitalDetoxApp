@@ -42,6 +42,12 @@
       <sourceFolder url="file://$MODULE_DIR$/src/kitkatDebug/jni" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/src/kitkatDebug/renderscript" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/src/kitkatDebug/shaders" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/build/generated/source/r/androidTest/kitkat/debug" isTestSource="true" generated="true" />
+      <sourceFolder url="file://$MODULE_DIR$/build/generated/source/aidl/androidTest/kitkat/debug" isTestSource="true" generated="true" />
+      <sourceFolder url="file://$MODULE_DIR$/build/generated/source/buildConfig/androidTest/kitkat/debug" isTestSource="true" generated="true" />
+      <sourceFolder url="file://$MODULE_DIR$/build/generated/source/rs/androidTest/kitkat/debug" isTestSource="true" generated="true" />
+      <sourceFolder url="file://$MODULE_DIR$/build/generated/res/rs/androidTest/kitkat/debug" type="java-test-resource" />
+      <sourceFolder url="file://$MODULE_DIR$/build/generated/res/resValues/androidTest/kitkat/debug" type="java-test-resource" />
       <sourceFolder url="file://$MODULE_DIR$/src/testKitkatDebug/res" type="java-test-resource" />
       <sourceFolder url="file://$MODULE_DIR$/src/testKitkatDebug/resources" type="java-test-resource" />
       <sourceFolder url="file://$MODULE_DIR$/src/testKitkatDebug/assets" type="java-test-resource" />
@@ -50,12 +56,6 @@
       <sourceFolder url="file://$MODULE_DIR$/src/testKitkatDebug/jni" isTestSource="true" />
       <sourceFolder url="file://$MODULE_DIR$/src/testKitkatDebug/rs" isTestSource="true" />
       <sourceFolder url="file://$MODULE_DIR$/src/testKitkatDebug/shaders" isTestSource="true" />
-      <sourceFolder url="file://$MODULE_DIR$/build/generated/source/r/androidTest/kitkat/debug" isTestSource="true" generated="true" />
-      <sourceFolder url="file://$MODULE_DIR$/build/generated/source/aidl/androidTest/kitkat/debug" isTestSource="true" generated="true" />
-      <sourceFolder url="file://$MODULE_DIR$/build/generated/source/buildConfig/androidTest/kitkat/debug" isTestSource="true" generated="true" />
-      <sourceFolder url="file://$MODULE_DIR$/build/generated/source/rs/androidTest/kitkat/debug" isTestSource="true" generated="true" />
-      <sourceFolder url="file://$MODULE_DIR$/build/generated/res/rs/androidTest/kitkat/debug" type="java-test-resource" />
-      <sourceFolder url="file://$MODULE_DIR$/build/generated/res/resValues/androidTest/kitkat/debug" type="java-test-resource" />
       <sourceFolder url="file://$MODULE_DIR$/src/kitkat/res" type="java-resource" />
       <sourceFolder url="file://$MODULE_DIR$/src/kitkat/resources" type="java-resource" />
       <sourceFolder url="file://$MODULE_DIR$/src/kitkat/assets" type="java-resource" />

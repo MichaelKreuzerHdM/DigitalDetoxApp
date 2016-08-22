@@ -219,6 +219,7 @@ public class Rule {
     }
 
     public static List<Rule> getRules(final boolean all, Context context) {
+        System.out.println("getRules was called");
         //MK
         SharedPreferences prefsDDA = context.getSharedPreferences(MyPREFERENCES, Context.MODE_PRIVATE);
 
@@ -353,7 +354,7 @@ public class Rule {
 
 
                     //MK start
-                    System.out.println("PACKAGE IS: " + info.packageName);
+                    //System.out.println("PACKAGE IS: " + info.packageName);
 
                     if(String.valueOf(rule).equals("Firefox") || String.valueOf(rule).equals("Browser")) {
                         SharedPreferences.Editor prefsEditor = prefsDDA.edit();
@@ -369,14 +370,25 @@ public class Rule {
                             rule.wifi_blocked = true;
                             rule.wifi_default = true;
                             System.out.println("Leisure-related apps turned off.");
+                            //rule.updateChanged(true,true,true);
+
+                            prefs.getBoolean("whitelist_wifi", true);
+                            prefs.edit().putBoolean("whitelist_wifi", false);
                         }else{
+
                             rule.wifi_blocked = false;
                             rule.wifi_default = false;
                             System.out.println("Leisure-related apps turned on.");
+                            //rule.updateChanged(false,false,false);
+                            prefs.getBoolean("whitelist_wifi", true);
+                            prefs.edit().putBoolean("whitelist_wifi", false);
                         }
+                        //ActivityMain.swEnabled.setChecked(true);
 
+                        //HIER WEITERMACHEN ()nä zeile evtl. wieder löschen
+                        ActivityMain.swEnabled.callOnClick();
                     }else{
-                        System.out.println("BROWSER NOT FOUND");
+                        //System.out.println("BROWSER NOT FOUND");
                     }
                     //MK end
 

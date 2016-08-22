@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@drawable/background_wood"
+    tools:context=".HomeActivity">
+
+    <ImageView
+        android:layout_width="366dp"
+        android:layout_height="183dp"
+        android:id="@+id/imageView"
+        android:layout_gravity="center_horizontal|top"
+        android:src="@drawable/beach_background_wide"
+        android:layout_marginTop="-5dp"
+        android:layout_marginRight="0dp"
+        android:layout_marginLeft="0dp"
+        android:cropToPadding="true"
+        android:maxHeight="50dp" />
+
+    <ImageView
+        android:layout_width="186dp"
+        android:layout_height="131dp"
+        android:id="@+id/imageView2"
+        android:layout_gravity="center_horizontal|top"
+        android:src="@drawable/ddheader"
+        android:layout_marginTop="90dp" />
+
+    <Button
+        style="?android:attr/buttonStyleSmall"
+        android:layout_width="245dp"
+        android:layout_height="wrap_content"
+        android:text="SET WORKPLACE"
+        android:id="@+id/button"
+        android:layout_gravity="center"
+        android:layout_marginTop="-10dp"
+        android:color="#c5ffffff"
+        android:backgroundTint="#3fffffff"
+        android:alpha="1"
+        android:clickable="true"
+        android:textColor="@android:color/white"
+        android:visibility="visible" />
+
+    <Button
+        style="?android:attr/buttonStyleSmall"
+        android:layout_width="245dp"
+        android:layout_height="wrap_content"
+        android:text="STATISTICS"
+        android:id="@+id/button2"
+        android:layout_gravity="center"
+        android:layout_marginTop="35dp"
+        android:color="#c5ffffff"
+        android:backgroundTint="#3fffffff"
+        android:alpha="1"
+        android:clickable="true"
+        android:textColor="@android:color/white"
+        android:visibility="visible"/>
+
+    <Button
+        style="?android:attr/buttonStyleSmall"
+        android:layout_width="245dp"
+        android:layout_height="wrap_content"
+        android:text="BLOCKED APPS"
+        android:id="@+id/button3"
+        android:layout_gravity="center"
+        android:layout_marginTop="80dp"
+        android:color="#c5ffffff"
+        android:backgroundTint="#3fffffff"
+        android:alpha="1"
+        android:clickable="true"
+        android:textColor="@android:color/white"
+        android:visibility="visible"/>
+
+    <Button
+        style="?android:attr/buttonStyleSmall"
+        android:layout_width="245dp"
+        android:layout_height="wrap_content"
+        android:text="EXIT"
+        android:id="@+id/button4"
+        android:layout_gravity="center"
+        android:layout_marginTop="125dp"
+        android:color="#c5ffffff"
+        android:backgroundTint="#3fffffff"
+        android:alpha="1"
+        android:clickable="true"
+        android:textColor="@android:color/white"
+        android:visibility="visible"/>
+
+</FrameLayout>

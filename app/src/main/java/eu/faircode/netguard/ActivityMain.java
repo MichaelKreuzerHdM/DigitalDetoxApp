@@ -71,7 +71,7 @@ public class ActivityMain extends AppCompatActivity implements SharedPreferences
     private boolean running = false;
     private ImageView ivIcon;
     private ImageView ivQueue;
-    private SwitchCompat swEnabled;
+    public static SwitchCompat swEnabled;
     private ImageView ivMetered;
     private SwipeRefreshLayout swipeRefresh;
     private AdapterRule adapter = null;
@@ -101,8 +101,42 @@ public class ActivityMain extends AppCompatActivity implements SharedPreferences
     public static final String EXTRA_METERED = "Metered";
     public static final String EXTRA_SIZE = "Size";
 
+    //MK
+    private BroadcastReceiver _refreshReceiver = new MyReceiver();
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+
+        //MK:
+        /* Hijack NetGuard by forcing the Digital Detox home menu activity to pop up on top of it.
+        Surpressing the homescreen is done by attaching an extra to the Intent that calls ActivityMain.
+
+        Simplified:
+            a) When RULES_SCREEN is submitted, the list of app rules is shown
+            b) When RULES_SCREEN is false or not found, Digital Detox home screen is shown
+        */
+        if (savedInstanceState == null) {
+            Bundle extras = getIntent().getExtras();
+            if(extras != null) {
+                if(extras.getBoolean("RULES_SCREEN")) {
+                    //Show app rules
+                }else{
+                    //Start Digital Detox home activity
+                    Intent intent = new Intent(ActivityMain.this, HomeActivity.class);
+                    startActivity(intent);
+                }
+            }else{
+                //Start Digital Detox home activity
+                Intent intent = new Intent(ActivityMain.this, HomeActivity.class);
+                startActivity(intent);
+            }
+        }
+
+        //MK
+        IntentFilter filter = new IntentFilter("MyBroadcast");
+        this.registerReceiver(_refreshReceiver, filter);
+
+
         Log.i(TAG, "Create version=" + Util.getSelfVersionName(this) + "/" + Util.getSelfVersionCode(this));
         Util.logExtras(getIntent());
 
@@ -636,7 +670,32 @@ public class ActivityMain extends AppCompatActivity implements SharedPreferences
         }
     };
 
-    private void updateApplicationList(final String search) {
+
+
+    public class MyBroadcastReceiver extends BroadcastReceiver {
+
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            System.out.println("MyBroadcastReceiver called");
+            Bundle extras = intent.getExtras();
+            if(extras!=null){
+                if(extras.containsKey("values")){
+                    System.out.println("Value is: " + extras.get("value"));
+                    //updateApplicationList("");
+
+                }
+            }
+
+        }
+    }
+
+    public final void dummyMethod(){
+        this.updateApplicationList("");
+        //Rule.getRules(false, ActivityMain.this);
+    }
+
+
+        public void updateApplicationList(final String search) {
         Log.i(TAG, "Update search=" + search);
 
         new AsyncTask<Object, Object, List<Rule>>() {
@@ -1102,5 +1161,19 @@ public class ActivityMain extends AppCompatActivity implements SharedPreferences
             intent.putExtra(Intent.EXTRA_TITLE, "logcat.txt");
         }
         return intent;
+    }
+
+    private class MyReceiver extends BroadcastReceiver {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            //toast "Broadcast received"
+            System.out.println("Broadcast received");
+
+            Rule.clearCache(ActivityMain.this);
+            ServiceSinkhole.reload("pull", ActivityMain.this);
+            updateApplicationList(null);
+
+
+        }
     }
 }

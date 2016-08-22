@@ -1,13 +1,10 @@
 package eu.faircode.netguard;
 
-import android.*;
-import android.Manifest;
 import android.app.Activity;
 import android.app.ActivityManager;
 import android.app.AlertDialog;
 import android.app.Notification;
 import android.app.PendingIntent;
-import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -21,11 +18,8 @@ import android.location.Location;
 import android.location.LocationManager;
 import android.net.Uri;
 import android.os.Bundle;
-import android.os.Handler;
-import android.os.Looper;
-import android.support.v4.app.ActivityCompat;
+import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentActivity;
-import android.support.v4.app.NotificationCompat;
 import android.view.View;
 import android.widget.Button;
 import android.widget.LinearLayout;
@@ -57,13 +51,14 @@ import java.util.TimerTask;
 
 public class MapsActivity extends FragmentActivity implements OnMapReadyCallback {
 
+    //Variables for fragments to avoid intent leaking
+    private static final String TAG_TASK_FRAGMENT = "task_fragment";
+    private FragmentForConfigChange mTaskFragment;
+
     private GoogleMap mMap;
     private LocationManager locationManager;
     private String provider;
     private Location location;
-
-    private Button saveWorkLocation;
-    private SeekBar radiusZoom;
 
     private static Context globalContext;
 
@@ -74,22 +69,39 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     private static final long POINT_RADIUS = 3; // in Meters
     private static final long PROX_ALERT_EXPIRATION = -1;
 
-    //home location button and coordinates
-    private Button saveHomeLocation;
+    //home location button
+    private Button homeButton;
+    private Button saveWorkLocation;
+
+    //Editable bar to change radius around work location
+    private SeekBar radiusZoom;
+
+    //Text field shows current mode (work or leisure)
+    private TextView textViewStatus;
+
+    //Coordinates
     private static final String POINT_LATITUDE_KEY = "POINT_LATITUDE_KEY";
     private static final String POINT_LONGITUDE_KEY = "POINT_LONGITUDE_KEY";
 
     private static int currentRadius=5;
+    private String mode="Leisure";
 
-    private TextView textViewStatus;
+    //PAS-Variables to switch mode only after a certain time
+    private int ticks =0;
+    private int leisureCnt=0;
 
-    //Handler for background UI task
-    private Handler handler = new Handler();
-    private Looper myLooper;
 
+    //Handler for background UI task and Runnable
+    ProximityIntentReceiver PIR;
+
+    //Global variable for name of Shared Preferences
     public static final String MyPREFERENCES = "MyPrefs" ;
 
+    //Show circles at current position indicating work or leisure mode on map
+    boolean showPosCircles=true;
+
     private static final String PROX_ALERT_INTENT = "com.example.micha.googlemapdemoapp.ProximityIntentReceiver";
+    public static final String ACTION_RULES_CHANGED = "eu.faircode.netguard.ACTION_RULES_CHANGED";
 
     //Register broadcast receiver in order to be able to stop and pause it later
     android.content.Intent reg;
@@ -102,18 +114,11 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     @Override
     protected void onCreate(Bundle savedInstanceState) {
 
-
-        //Test for background worker
-
-
-
-
-
         //Trick to be able to add control elements to layout
         LinearLayout linear = (LinearLayout) findViewById(R.id.linear);
         super.onCreate(savedInstanceState);
+
         setContentView(R.layout.activity_maps);
-        handler = new Handler();
 
         //add buttons dynamically
         /*
@@ -135,6 +140,18 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 MINIMUM_DISTANCECHANGE_FOR_UPDATE,
                 (LocationListener) MyLocationListener()
         );*/
+
+        //Avoid leaking of Activity
+        /*
+        FragmentManager fm = getFragmentManager();
+        mTaskFragment = (FragmentForConfigChange) fm.findFragmentByTag(TAG_TASK_FRAGMENT);
+
+        // If the Fragment is non-null, then it is currently being
+        // retained across a configuration change.
+        if (mTaskFragment == null) {
+            mTaskFragment = new FragmentForConfigChange();
+            fm.beginTransaction().add(mTaskFragment, TAG_TASK_FRAGMENT).commit();
+        }*/
 
         // Obtain the SupportMapFragment and get notified when the map is ready to be used.
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.map);
@@ -167,6 +184,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         });
 
 
+
         //Get list of all installed apps
         final PackageManager pm = getPackageManager();
         Intent intent = new Intent(Intent.ACTION_MAIN, null);
@@ -174,8 +192,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         List<ResolveInfo> apps = pm.queryIntentActivities(intent, PackageManager.GET_META_DATA);
 
         //Start intent in order to see check rules
-        //Intent appRulesIntent = new Intent(this, SettingsActivity2.class);
-        //MapsActivity.this.startActivity(appRulesIntent);
 
         String listOfAllApps="";
         for(int i = 0; i<=apps.size()-1; i++){
@@ -204,8 +220,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             listOfAllApps+= String.valueOf(String.valueOf(runningAppProcessInfo.get(i).processName) + "\n");
         }
 
-        //callAlertBox(String.valueOf(runningAppProcessInfo.get(0)));
-        callAlertBox("List of running apps: \n" + listOfAllApps);
+        //Show list of running apps
+       // callAlertBox("List of running apps: \n" + listOfAllApps);
 
 
 
@@ -229,10 +245,13 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         */
     }
 
+    //Restore Activity after being destroyed
+    //https://developer.android.com/training/basics/activity-lifecycle/recreating.html
+
     //When no lastknown location can be found, check for current location
     private void startListening(){
+        //To implement
         //String locationProvider = LocationManager.NETWORK_PROVIDER;
-
         //locationManager.requestLocationUpdates(locationProvider, 0, 0, locationListener);
     }
 
@@ -249,9 +268,9 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
         if (location==null) {
             Toast.makeText(this, "No last known location. Aborting...", Toast.LENGTH_LONG).show();
-
             return;
         }
+
         Toast.makeText(this, "Proximity alert saved", Toast.LENGTH_SHORT).show();
         saveCoordinates((float) location.getLatitude(), (float) location.getLongitude());
         addProximityAlert(location.getLatitude(),  location.getLongitude());
@@ -299,12 +318,32 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         mMap.addMarker(new MarkerOptions().position(currentPos2).title("Work Position: " + latitude + " - " + longitude));
 
         IntentFilter filter = new IntentFilter(PROX_ALERT_INTENT);
-        registerReceiver(new ProximityIntentReceiver(), filter);
+        PIR = new ProximityIntentReceiver();
+        registerReceiver(PIR, filter);
 
+
+
+/*
+        public static void scheduleTestAlarmReceiver(Context tempContext) {
+
+            Intent receiverIntent = new Intent(tempContext, MapsActivity.class);
+            PendingIntent sender = PendingIntent.getBroadcast(tempContext, 123456789, receiverIntent, 0);
+
+            AlarmManager alarmManager = (AlarmManager)tempContext.getSystemService(Context.ALARM_SERVICE);
+            alarmManager.setRepeating(AlarmManager.ELAPSED_REALTIME_WAKEUP, SystemClock.elapsedRealtime()+200, 200, sender);
+
+        }
+
+        scheduleTestAlarmReceiver(globalContext);
+        */
+
+        //Retrieve location in an intervall of five seconds.
+        //interval is currently fix, but should be made dynamic
+        //in the final version of the app.
         new Timer(true).scheduleAtFixedRate(new TimerTask(){
+
             @Override
             public void run(){
-
                 Criteria criteria = new Criteria();
                 criteria.setPowerRequirement(Criteria.POWER_HIGH);
                 criteria.setAccuracy(Criteria.ACCURACY_FINE);
@@ -316,7 +355,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 Location pointLocation = retrievelocationFromPreferences();
                 final float distance = location.distanceTo(pointLocation);
 
-                final String mode;
                 final DecimalFormat df = new DecimalFormat("0.00");
                 final float tempLat=(float)location.getLatitude();
                 final float tempLng=(float)location.getLongitude();
@@ -325,6 +363,13 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 SharedPreferences prefsDDA = getSharedPreferences(MyPREFERENCES, Context.MODE_PRIVATE);
                 SharedPreferences.Editor prefsEditor = prefsDDA.edit();
 
+                //Check what the prevailing mode is.
+                //Do nothing if current mode == prevailing mode:
+                //increment ticks if current mode and prevailing mode differ
+                boolean prevailingMode = prefsDDA.getBoolean("workMode",true);
+
+                //HIER WEITERMACHEN
+                //Find out what current mode is (is user in radius of work location?)
                 if(distance<currentRadius){
                     mode="Work";
                     prefsEditor.putBoolean("workMode", true);
@@ -335,15 +380,33 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 }
                 prefsEditor.commit();
 
-                runOnUiThread(new Runnable() {
+                //Only call broadcast when mode has changed
+                if(prevailingMode!=prefsDDA.getBoolean("workMode", true)) {
+                    System.out.println("MODE CHANGED. SENDING BROADCAST");
+                    System.out.println("Prevailing mode: " + prevailingMode);
+                    System.out.println("getBoolean" + prefsDDA.getBoolean("workMode", true));
 
+                    //Update rules in NetGuard's list of apps:
+                    //Send broadcast to ActivityMain
+                    Intent updateRulesIntent = new Intent("MyBroadcast");
+                    updateRulesIntent.setAction("MyBroadcast");
+                    updateRulesIntent.putExtra("value", 1000);
+                    sendBroadcast(updateRulesIntent);
+
+                    Rule.getRules(true, getApplicationContext());
+                }
+                //Show current mode in user interface.
+                //This has to run on a UI thread, because
+                // normal threads cannot access UI elements
+                runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
                         updateResults(mode, String.valueOf(df.format(distance)) + "m", tempLat, tempLng, tempContext);
                     }
-                });
+                    });
 
-                //System.out.println("Distance: " + location.getLatitude() + ". Longitude: " + location.getLongitude());
+                //Output for debug and logging
+                System.out.println("Distance: " + String.valueOf(df.format(distance)) + "m" + ". LAT: " + location.getLatitude() + ". LNG: " + location.getLongitude());
 
                 /*
                 Circle circle = mMap.addCircle(new CircleOptions()
@@ -355,41 +418,52 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             }
             int i = setUpMap();
         },0,5000);
+
+        // The four methods below are called by the TaskFragment when new
+        // progress updates or results are available. The MainActivity
+        // should respond by updating its UI to indicate the change.
+
+        /*@Override
+        public void onPreExecute() {  }
+
+        @Override
+        public void onProgressUpdate(int percent) { ... }
+
+        @Override
+        public void onCancelled() { ... }
+
+        @Override
+        public void onPostExecute() { ... }
+    */
     }
 
     public void updateResults(String textStr, String distanceStr, float tempLat, float tempLng, Context context) {
-
-       /* Handler handler;
-        MapsActivity ref;
-
-        public updateTask (){
-
-        }
-        */
-
         Calendar c = Calendar.getInstance();
         c.setTimeZone(TimeZone.getTimeZone("Europe/Berlin"));
         int seconds = c.get(Calendar.SECOND);
         int minutes = c.get(Calendar.MINUTE);
         int hours = c.get(Calendar.HOUR);
-        if(textStr=="Leisure") {
-            Circle circle = mMap.addCircle(new CircleOptions()
-                    .center(new LatLng(tempLat, tempLng))
-                    .radius((float) 1)
-                    .strokeColor(Color.BLACK)
-                    .fillColor(0x550085FF));
-        }else{
-            Circle circle = mMap.addCircle(new CircleOptions()
-                    .center(new LatLng(tempLat, tempLng))
-                    .radius((float) 1)
-                    .strokeColor(Color.BLACK)
-                    .fillColor(Color.RED));
-            System.out.println("2 - Latitude: " + tempLat + ". Longitude: " + tempLng + ". Time: " + String.valueOf(hours) + ":" + String.valueOf(minutes) + ":" + String.valueOf(seconds));
-            System.out.println("Distance: " + distanceStr);
+
+        //Draw circles to show current position of user.
+        //Color indicates the current mode (leisure or work)
+        if(showPosCircles) {
+            if (textStr == "Leisure") {
+                Circle circle = mMap.addCircle(new CircleOptions()
+                        .center(new LatLng(tempLat, tempLng))
+                        .radius((float) 1)
+                        .strokeColor(Color.BLACK)
+                        .fillColor(0x550085FF));
+            } else {
+                Circle circle = mMap.addCircle(new CircleOptions()
+                        .center(new LatLng(tempLat, tempLng))
+                        .radius((float) 1)
+                        .strokeColor(Color.BLACK)
+                        .fillColor(Color.RED));
+            }
         }
 
         TextView textViewStatus = (TextView) findViewById(R.id.textViewStatus);
-        textViewStatus.setText(textStr + " " + distanceStr);
+        textViewStatus.setText(textStr + " Mode " + distanceStr);
     }
 
     //Create notifications (only needed in first development phase, but kept for possible later usage)
@@ -431,14 +505,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         }
     }
 
-    private void saveCoordinatesInPreferences(float latitude, float longitude) {
-        SharedPreferences prefs = this.getSharedPreferences(getClass().getSimpleName(), Context.MODE_PRIVATE);
-        SharedPreferences.Editor prefsEditor = prefs.edit();
-        prefsEditor.putFloat(POINT_LATITUDE_KEY, latitude);
-        prefsEditor.putFloat(POINT_LONGITUDE_KEY, longitude);
-        prefsEditor.commit();
-    }
-
     public Location retrievelocationFromPreferences() {
         SharedPreferences prefs = this.getSharedPreferences(getClass().getSimpleName(), Context.MODE_PRIVATE);
         Location location = new Location("POINT_LOCATION");
@@ -478,12 +544,11 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
         */
 
-        //Enable location
-        //if (ActivityCompat.checkSelfPermission((boolean)globalContext, Manifest.permission.ACCESS_FINE_LOCATION)) {
-            mMap.setMyLocationEnabled(true);
-        //}
+        //Enable Google Maps to retrieve my current location
+        mMap.setMyLocationEnabled(true);
 
         locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
+
 
         Criteria criteria = new Criteria();
         criteria.setPowerRequirement(Criteria.POWER_HIGH);
@@ -501,7 +566,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
         //Get buttons
         saveWorkLocation = (Button) findViewById(R.id.btn_work_location);
-        saveHomeLocation = (Button) findViewById(R.id.btn_home_location);
+        homeButton = (Button) findViewById(R.id.btn_home_location);
 
         saveWorkLocation.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -509,6 +574,20 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 //populate coordinates for work location
                 populateCoordinatesFromLastKnownLocation(true);
                 saveProximityAlertPoint();
+            }
+        });
+
+        homeButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                //setContentView(R.layout.home);
+                //setContentView(R.layout.home);
+                Intent intent = new Intent(MapsActivity.this, HomeActivity.class);
+
+                startActivity(intent);
+
+                //ToDo: Unregister receiver because of error message
+                //getActivity().unregisterReceiver(this);
             }
         });
     }
@@ -565,10 +644,11 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         AppIndex.AppIndexApi.end(client, viewAction);
         client.disconnect();
 
-       // unregisterReceiver(reg);
-        //super.onStop();
+
     }
 
+    //Method to provide alert box function on runtime
+    //Especially helpful when called by thread
     public void callAlertBox(String msgToDisplay) {
         AlertDialog alertDialog = new AlertDialog.Builder(MapsActivity.this).create();
         alertDialog.setTitle("Alert");
@@ -587,8 +667,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         provider = locationManager.getBestProvider(criteria, false);
         Location location = locationManager.getLastKnownLocation(provider);
 
-        LatLng tempLoc = new LatLng(location.getLatitude(), location.getLongitude());
-
         Circle circle = mMap.addCircle(new CircleOptions()
                 .center(new LatLng(location.getLatitude(), location.getLongitude()+0.1))
                 .radius((float)POINT_RADIUS)
@@ -601,22 +679,44 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
 
 
-
-
-    public static class MyBackgroundMethodThread extends Thread {
-        MyBackgroundMethodThread mbm = new MyBackgroundMethodThread();
-
-        @Override
-        public void run() {
-            while (true) {
-                System.out.println("Executed!");
-                try {
-                    Thread.sleep(1000);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
-            }
+    public static class FragmentForConfigChange extends Fragment{
+        interface TaskCallbacks {
+            void onPreExecute();
+            void onProgressUpdate(int percent);
+            void onCancelled();
+            void onPostExecute();
         }
 
+
+        private TaskCallbacks mCallbacks;
+        //private DummyTask mTask;
+
+        public void onCreate(Bundle savedInstanceState) {
+            super.onCreate(savedInstanceState);
+            setRetainInstance(true);
+        }
+
+
+        public void onAttach(Activity activity) {
+            super.onAttach(activity);
+            mCallbacks = (TaskCallbacks) activity;
+        }
+
+        public void FragmentForConfigChange(Context context){
+            return;
+        }
+
+
+        @Override
+        public void setRetainInstance(boolean retain) {
+            setRetainInstance(true);
+            return;
+        }
+
+
+
     }
+
+
+
 }
