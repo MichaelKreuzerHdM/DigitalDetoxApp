@@ -7,24 +7,12 @@
     tools:context=".HomeActivity">
 
     <ImageView
-        android:layout_width="366dp"
-        android:layout_height="183dp"
-        android:id="@+id/imageView"
-        android:layout_gravity="center_horizontal|top"
-        android:src="@drawable/beach_background_wide"
-        android:layout_marginTop="-5dp"
-        android:layout_marginRight="0dp"
-        android:layout_marginLeft="0dp"
-        android:cropToPadding="true"
-        android:maxHeight="50dp" />
-
-    <ImageView
-        android:layout_width="186dp"
-        android:layout_height="131dp"
+        android:layout_width="392dp"
+        android:layout_height="221dp"
         android:id="@+id/imageView2"
         android:layout_gravity="center_horizontal|top"
-        android:src="@drawable/ddheader"
-        android:layout_marginTop="90dp" />
+        android:src="@drawable/activitycircleworkexport"
+        android:layout_marginTop="30dp" />
 
     <Button
         style="?android:attr/buttonStyleSmall"
@@ -33,7 +21,7 @@
         android:text="SET WORKPLACE"
         android:id="@+id/button"
         android:layout_gravity="center"
-        android:layout_marginTop="-10dp"
+        android:layout_marginTop="-15dp"
         android:color="#c5ffffff"
         android:backgroundTint="#3fffffff"
         android:alpha="1"
@@ -45,10 +33,10 @@
         style="?android:attr/buttonStyleSmall"
         android:layout_width="245dp"
         android:layout_height="wrap_content"
-        android:text="STATISTICS"
+        android:text="STATISTICS &amp; PROGRESS"
         android:id="@+id/button2"
         android:layout_gravity="center"
-        android:layout_marginTop="35dp"
+        android:layout_marginTop="30dp"
         android:color="#c5ffffff"
         android:backgroundTint="#3fffffff"
         android:alpha="1"
@@ -63,7 +51,7 @@
         android:text="BLOCKED APPS"
         android:id="@+id/button3"
         android:layout_gravity="center"
-        android:layout_marginTop="80dp"
+        android:layout_marginTop="75dp"
         android:color="#c5ffffff"
         android:backgroundTint="#3fffffff"
         android:alpha="1"
@@ -78,12 +66,42 @@
         android:text="EXIT"
         android:id="@+id/button4"
         android:layout_gravity="center"
-        android:layout_marginTop="125dp"
+        android:layout_marginTop="210dp"
         android:color="#c5ffffff"
         android:backgroundTint="#3fffffff"
         android:alpha="1"
         android:clickable="true"
         android:textColor="@android:color/white"
         android:visibility="visible"/>
+
+    <Button
+        style="?android:attr/buttonStyleSmall"
+        android:layout_width="245dp"
+        android:layout_height="wrap_content"
+        android:text="BLOCKED CALLERS"
+        android:id="@+id/button5"
+        android:layout_gravity="center"
+        android:color="#c5ffffff"
+        android:backgroundTint="#3fffffff"
+        android:alpha="1"
+        android:clickable="true"
+        android:textColor="@android:color/white"
+        android:visibility="visible"
+        android:layout_marginTop="120dp" />
+
+    <Button
+        style="?android:attr/buttonStyleSmall"
+        android:layout_width="245dp"
+        android:layout_height="wrap_content"
+        android:text="PIGGY BANK"
+        android:id="@+id/button7"
+        android:layout_gravity="center"
+        android:color="#c5ffffff"
+        android:backgroundTint="#3fffffff"
+        android:alpha="1"
+        android:clickable="true"
+        android:textColor="@android:color/white"
+        android:visibility="visible"
+        android:layout_marginTop="165dp" />
 
 </FrameLayout>

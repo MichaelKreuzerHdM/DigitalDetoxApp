@@ -509,6 +509,9 @@ public class ServiceSinkhole extends VpnService implements SharedPreferences.OnS
         }
 
         private void checkUpdate() {
+            //MK: Turned this part off to surpress unwanted update notifications
+        }
+            /*
             StringBuilder json = new StringBuilder();
             HttpsURLConnection urlConnection = null;
             try {
@@ -553,6 +556,7 @@ public class ServiceSinkhole extends VpnService implements SharedPreferences.OnS
                 Log.e(TAG, ex.toString() + "\n" + Log.getStackTraceString(ex));
             }
         }
+        */
     }
 
     private final class LogHandler extends Handler {

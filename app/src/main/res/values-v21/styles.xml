@@ -7,4 +7,10 @@
     <style name="TextSmall" parent="@android:style/TextAppearance.Material.Small" />
 
     <style name="TextTitle" parent="@android:style/TextAppearance.Material.Title" />
+            <style name="AppThemeTeal.NoActionBar">
+        <item name="windowActionBar">false</item>
+        <item name="windowNoTitle">true</item>
+        <item name="android:windowDrawsSystemBarBackgrounds">true</item>
+        <item name="android:statusBarColor">@android:color/transparent</item>
+    </style>
 </resources>

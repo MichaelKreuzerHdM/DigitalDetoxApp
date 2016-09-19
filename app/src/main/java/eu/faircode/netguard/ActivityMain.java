@@ -1053,10 +1053,6 @@ public class ActivityMain extends AppCompatActivity implements SharedPreferences
         //setContentView(R.layout.activity_maps);
         //MapsActivity maTemp = new MapsActivity();
 
-        Intent myIntent = new Intent(ActivityMain.this, MapsActivity.class);
-        ActivityMain.this.startActivity(myIntent);
-
-        /*
         // Create view
         LayoutInflater inflater = LayoutInflater.from(this);
         View view = inflater.inflate(R.layout.about, null, false);
@@ -1119,7 +1115,6 @@ public class ActivityMain extends AppCompatActivity implements SharedPreferences
                 })
                 .create();
         dialogAbout.show();
-        */
     }
 
     private static Intent getIntentInvite(Context context) {
@@ -1166,14 +1161,11 @@ public class ActivityMain extends AppCompatActivity implements SharedPreferences
     private class MyReceiver extends BroadcastReceiver {
         @Override
         public void onReceive(Context context, Intent intent) {
-            //toast "Broadcast received"
             System.out.println("Broadcast received");
 
             Rule.clearCache(ActivityMain.this);
             ServiceSinkhole.reload("pull", ActivityMain.this);
             updateApplicationList(null);
-
-
         }
     }
 }

@@ -8,27 +8,15 @@
     android:paddingRight="@dimen/activity_horizontal_margin"
     android:paddingTop="@dimen/activity_vertical_margin"
     android:background="@drawable/background_wood"
-    tools:context="eu.faircode.netguard.MainActivity">
+    tools:context="eu.faircode.netguard.ActivityMain">
 
     <ImageView
-        android:layout_width="fill_parent"
-        android:layout_height="170dp"
-        android:id="@+id/imageView"
-        android:layout_gravity="center_horizontal|top"
-        android:src="@drawable/beach_background_wide"
-        android:layout_marginTop="-5dp"
-        android:layout_marginRight="0dp"
-        android:layout_marginLeft="0dp"
-        android:cropToPadding="true"
-        android:visibility="visible" />
-
-    <ImageView
-        android:layout_width="186dp"
-        android:layout_height="131dp"
+        android:layout_width="165dp"
+        android:layout_height="113dp"
         android:id="@+id/imageView2"
         android:layout_gravity="center_horizontal|top"
-        android:src="@drawable/ddheader"
-        android:layout_marginTop="90dp"
+        android:src="@drawable/activitycircleworkexport"
+        android:layout_marginTop="110dp"
         android:scaleType="fitXY"
         android:visibility="visible" />
 
@@ -36,10 +24,10 @@
         style="?android:attr/buttonStyleSmall"
         android:layout_width="245dp"
         android:layout_height="wrap_content"
-        android:text="SET WORKPLACE"
+        android:text="SET MY WORK LOCATION"
         android:id="@+id/set_workplace_btn"
         android:layout_gravity="center"
-        android:layout_marginTop="20dp"
+        android:layout_marginTop="-5dp"
         android:color="#c5ffffff"
         android:backgroundTint="#3fffffff"
         android:alpha="1"
@@ -51,10 +39,10 @@
         style="?android:attr/buttonStyleSmall"
         android:layout_width="245dp"
         android:layout_height="wrap_content"
-        android:text="STATISTICS"
-        android:id="@+id/statistics_btn"
+        android:text="BLOCKED APPS"
+        android:id="@+id/blocked_apps_btn"
         android:layout_gravity="center"
-        android:layout_marginTop="60dp"
+        android:layout_marginTop="40dp"
         android:color="#c5ffffff"
         android:backgroundTint="#3fffffff"
         android:alpha="1"
@@ -66,10 +54,10 @@
         style="?android:attr/buttonStyleSmall"
         android:layout_width="245dp"
         android:layout_height="wrap_content"
-        android:text="BLOCKED APPS"
-        android:id="@+id/blocked_apps_btn"
+        android:text="PROGRESS &amp; STATISTICS"
+        android:id="@+id/statistics_btn"
         android:layout_gravity="center"
-        android:layout_marginTop="100dp"
+        android:layout_marginTop="85dp"
         android:color="#c5ffffff"
         android:backgroundTint="#3fffffff"
         android:alpha="1"
@@ -84,12 +72,27 @@
         android:text="EXIT"
         android:id="@+id/exit_btn"
         android:layout_gravity="center"
-        android:layout_marginTop="140dp"
+        android:layout_marginTop="175dp"
         android:color="#c5ffffff"
         android:backgroundTint="#3fffffff"
         android:alpha="1"
         android:clickable="true"
         android:textColor="@android:color/white"
         android:visibility="visible"/>
+
+    <Button
+        style="?android:attr/buttonStyleSmall"
+        android:layout_width="245dp"
+        android:layout_height="wrap_content"
+        android:text="BLOCKED CALLERS"
+        android:id="@+id/blocked_callers_btn"
+        android:layout_gravity="center"
+        android:layout_marginTop="130dp"
+        android:color="#c5ffffff"
+        android:backgroundTint="#3fffffff"
+        android:alpha="1"
+        android:clickable="true"
+        android:textColor="@android:color/white"
+        android:visibility="visible" />
 
 </FrameLayout>

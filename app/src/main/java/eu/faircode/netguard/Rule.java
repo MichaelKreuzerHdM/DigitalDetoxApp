@@ -219,9 +219,10 @@ public class Rule {
     }
 
     public static List<Rule> getRules(final boolean all, Context context) {
+        //MK start
         System.out.println("getRules was called");
-        //MK
         SharedPreferences prefsDDA = context.getSharedPreferences(MyPREFERENCES, Context.MODE_PRIVATE);
+        //MK end
 
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
         SharedPreferences wifi = context.getSharedPreferences("wifi", Context.MODE_PRIVATE);
@@ -324,7 +325,6 @@ public class Rule {
         for (PackageInfo info : listPI)
             try {
                 Rule rule = new Rule(info, context);
-
                 if (pre_system.containsKey(info.packageName))
                     rule.system = pre_system.get(info.packageName);
                 if (info.applicationInfo.uid == Process.myUid())
@@ -354,41 +354,90 @@ public class Rule {
 
 
                     //MK start
-                    //System.out.println("PACKAGE IS: " + info.packageName);
+                    System.out.println("PACKAGE IS: " + info.packageName);
 
-                    if(String.valueOf(rule).equals("Firefox") || String.valueOf(rule).equals("Browser")) {
-                        SharedPreferences.Editor prefsEditor = prefsDDA.edit();
-                        boolean workMode = prefsDDA.getBoolean("workMode",true);
-                        System.out.println("PREFERENCES: " + workMode);
-                        System.out.println("BROWSER FOUND: " + info.packageName + " Work mode is: " + workMode);
+                    SharedPreferences.Editor prefsEditor = prefsDDA.edit();
+                    boolean workMode = prefsDDA.getBoolean("workMode", true);
+                    System.out.println("WORK MODE: " + workMode);
 
-                        //HIER WEITERMACHEN
-                        //Query database and check if this package is allowed
-                        //For test purposes: check if reading from database is working at all
 
-                        if(workMode){
-                            rule.wifi_blocked = true;
-                            rule.wifi_default = true;
-                            System.out.println("Leisure-related apps turned off.");
-                            //rule.updateChanged(true,true,true);
 
-                            prefs.getBoolean("whitelist_wifi", true);
-                            prefs.edit().putBoolean("whitelist_wifi", false);
-                        }else{
+                    if (info.packageName.equals("eu.faircode.netguard") ) {
+                        System.out.println("PACKAGE IS: " + info.packageName);
+                    }
 
-                            rule.wifi_blocked = false;
-                            rule.wifi_default = false;
-                            System.out.println("Leisure-related apps turned on.");
-                            //rule.updateChanged(false,false,false);
-                            prefs.getBoolean("whitelist_wifi", true);
-                            prefs.edit().putBoolean("whitelist_wifi", false);
+                    if(info.packageName.equals("com.quickoffice.android")){
+                        System.out.println("PACKAGE IS: " + info.packageName);
+                    }
+
+                    if(info.packageName.equals("com.whatsapp")) {
+                        System.out.println("PACKAGE IS: " + info.packageName);
+                    }
+
+                    if (!(info.packageName.equals("eu.faircode.netguard")) ) {
+                        //Get mode of this certain app
+                        String modeOfApp = prefsDDA.getString(info.packageName, "none");
+
+                        //Exclude system apps (because they are not enlisted in Google Play Store)
+                        // --> for leisure related apps
+                        if (String.valueOf(rule).equals("Browser") ) {
+                            System.out.println("BROWSER FOUND: " + info.packageName +  " Work mode is: " + workMode);
+                            modeOfApp="leisure";
                         }
-                        //ActivityMain.swEnabled.setChecked(true);
 
+                        if (String.valueOf(rule).equals("Chrome") ) {
+                            System.out.println("CHROME FOUND: " + info.packageName +  " Work mode is: " + workMode);
+                            //modeOfApp="leisure";
+                        }
+
+                        // --> for work related apps
+                        if (String.valueOf(rule).equals("Email") ) {
+                            System.out.println("Email FOUND: " + info.packageName + " Work mode is: " + workMode);
+                            modeOfApp="work";
+                        }
+
+
+
+                        if (workMode) {
+                            //Forbid work apps in leisure mode
+                            if (modeOfApp.equals("work")) {
+                                rule.wifi_blocked = false;
+                                rule.wifi_default = false;
+
+                                prefs.getBoolean("whitelist_wifi", true);
+                                prefs.edit().putBoolean("whitelist_wifi", false);
+                            }
+
+                            //Forbid leisure apps in work mode
+                            if (modeOfApp.equals("leisure")) {
+                                rule.wifi_blocked = true;
+                                rule.wifi_default = true;
+
+                                prefs.getBoolean("whitelist_wifi", true);
+                                prefs.edit().putBoolean("whitelist_wifi", false);
+                            }
+                        } else {
+                            //Allow work apps in work mode
+                            if (modeOfApp.equals("work")) {
+                                rule.wifi_blocked = true;
+                                rule.wifi_default = true;
+
+                                prefs.getBoolean("whitelist_wifi", true);
+                                prefs.edit().putBoolean("whitelist_wifi", false);
+                            }
+
+                            //Allow leisure apps in leisure mode
+                            if (modeOfApp.equals("leisure")) {
+                                rule.wifi_blocked = false;
+                                rule.wifi_default = false;
+
+                                prefs.getBoolean("whitelist_wifi", true);
+                                prefs.edit().putBoolean("whitelist_wifi", false);
+                            }
+                        }
                         //HIER WEITERMACHEN ()nä zeile evtl. wieder löschen
                         ActivityMain.swEnabled.callOnClick();
-                    }else{
-                        //System.out.println("BROWSER NOT FOUND");
+                        //}
                     }
                     //MK end
 

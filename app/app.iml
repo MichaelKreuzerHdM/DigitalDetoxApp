@@ -42,12 +42,6 @@
       <sourceFolder url="file://$MODULE_DIR$/src/kitkatDebug/jni" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/src/kitkatDebug/renderscript" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/src/kitkatDebug/shaders" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/build/generated/source/r/androidTest/kitkat/debug" isTestSource="true" generated="true" />
-      <sourceFolder url="file://$MODULE_DIR$/build/generated/source/aidl/androidTest/kitkat/debug" isTestSource="true" generated="true" />
-      <sourceFolder url="file://$MODULE_DIR$/build/generated/source/buildConfig/androidTest/kitkat/debug" isTestSource="true" generated="true" />
-      <sourceFolder url="file://$MODULE_DIR$/build/generated/source/rs/androidTest/kitkat/debug" isTestSource="true" generated="true" />
-      <sourceFolder url="file://$MODULE_DIR$/build/generated/res/rs/androidTest/kitkat/debug" type="java-test-resource" />
-      <sourceFolder url="file://$MODULE_DIR$/build/generated/res/resValues/androidTest/kitkat/debug" type="java-test-resource" />
       <sourceFolder url="file://$MODULE_DIR$/src/testKitkatDebug/res" type="java-test-resource" />
       <sourceFolder url="file://$MODULE_DIR$/src/testKitkatDebug/resources" type="java-test-resource" />
       <sourceFolder url="file://$MODULE_DIR$/src/testKitkatDebug/assets" type="java-test-resource" />
@@ -56,6 +50,12 @@
       <sourceFolder url="file://$MODULE_DIR$/src/testKitkatDebug/jni" isTestSource="true" />
       <sourceFolder url="file://$MODULE_DIR$/src/testKitkatDebug/rs" isTestSource="true" />
       <sourceFolder url="file://$MODULE_DIR$/src/testKitkatDebug/shaders" isTestSource="true" />
+      <sourceFolder url="file://$MODULE_DIR$/build/generated/source/r/androidTest/kitkat/debug" isTestSource="true" generated="true" />
+      <sourceFolder url="file://$MODULE_DIR$/build/generated/source/aidl/androidTest/kitkat/debug" isTestSource="true" generated="true" />
+      <sourceFolder url="file://$MODULE_DIR$/build/generated/source/buildConfig/androidTest/kitkat/debug" isTestSource="true" generated="true" />
+      <sourceFolder url="file://$MODULE_DIR$/build/generated/source/rs/androidTest/kitkat/debug" isTestSource="true" generated="true" />
+      <sourceFolder url="file://$MODULE_DIR$/build/generated/res/rs/androidTest/kitkat/debug" type="java-test-resource" />
+      <sourceFolder url="file://$MODULE_DIR$/build/generated/res/resValues/androidTest/kitkat/debug" type="java-test-resource" />
       <sourceFolder url="file://$MODULE_DIR$/src/kitkat/res" type="java-resource" />
       <sourceFolder url="file://$MODULE_DIR$/src/kitkat/resources" type="java-resource" />
       <sourceFolder url="file://$MODULE_DIR$/src/kitkat/assets" type="java-resource" />
@@ -64,14 +64,6 @@
       <sourceFolder url="file://$MODULE_DIR$/src/kitkat/jni" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/src/kitkat/renderscript" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/src/kitkat/shaders" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/src/androidTestKitkat/res" type="java-test-resource" />
-      <sourceFolder url="file://$MODULE_DIR$/src/androidTestKitkat/resources" type="java-test-resource" />
-      <sourceFolder url="file://$MODULE_DIR$/src/androidTestKitkat/assets" type="java-test-resource" />
-      <sourceFolder url="file://$MODULE_DIR$/src/androidTestKitkat/aidl" isTestSource="true" />
-      <sourceFolder url="file://$MODULE_DIR$/src/androidTestKitkat/java" isTestSource="true" />
-      <sourceFolder url="file://$MODULE_DIR$/src/androidTestKitkat/jni" isTestSource="true" />
-      <sourceFolder url="file://$MODULE_DIR$/src/androidTestKitkat/rs" isTestSource="true" />
-      <sourceFolder url="file://$MODULE_DIR$/src/androidTestKitkat/shaders" isTestSource="true" />
       <sourceFolder url="file://$MODULE_DIR$/src/testKitkat/res" type="java-test-resource" />
       <sourceFolder url="file://$MODULE_DIR$/src/testKitkat/resources" type="java-test-resource" />
       <sourceFolder url="file://$MODULE_DIR$/src/testKitkat/assets" type="java-test-resource" />
@@ -80,6 +72,14 @@
       <sourceFolder url="file://$MODULE_DIR$/src/testKitkat/jni" isTestSource="true" />
       <sourceFolder url="file://$MODULE_DIR$/src/testKitkat/rs" isTestSource="true" />
       <sourceFolder url="file://$MODULE_DIR$/src/testKitkat/shaders" isTestSource="true" />
+      <sourceFolder url="file://$MODULE_DIR$/src/androidTestKitkat/res" type="java-test-resource" />
+      <sourceFolder url="file://$MODULE_DIR$/src/androidTestKitkat/resources" type="java-test-resource" />
+      <sourceFolder url="file://$MODULE_DIR$/src/androidTestKitkat/assets" type="java-test-resource" />
+      <sourceFolder url="file://$MODULE_DIR$/src/androidTestKitkat/aidl" isTestSource="true" />
+      <sourceFolder url="file://$MODULE_DIR$/src/androidTestKitkat/java" isTestSource="true" />
+      <sourceFolder url="file://$MODULE_DIR$/src/androidTestKitkat/jni" isTestSource="true" />
+      <sourceFolder url="file://$MODULE_DIR$/src/androidTestKitkat/rs" isTestSource="true" />
+      <sourceFolder url="file://$MODULE_DIR$/src/androidTestKitkat/shaders" isTestSource="true" />
       <sourceFolder url="file://$MODULE_DIR$/src/debug/res" type="java-resource" />
       <sourceFolder url="file://$MODULE_DIR$/src/debug/resources" type="java-resource" />
       <sourceFolder url="file://$MODULE_DIR$/src/debug/assets" type="java-resource" />
@@ -104,14 +104,6 @@
       <sourceFolder url="file://$MODULE_DIR$/src/main/jni" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/src/main/renderscript" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/src/main/shaders" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/src/test/res" type="java-test-resource" />
-      <sourceFolder url="file://$MODULE_DIR$/src/test/resources" type="java-test-resource" />
-      <sourceFolder url="file://$MODULE_DIR$/src/test/assets" type="java-test-resource" />
-      <sourceFolder url="file://$MODULE_DIR$/src/test/aidl" isTestSource="true" />
-      <sourceFolder url="file://$MODULE_DIR$/src/test/java" isTestSource="true" />
-      <sourceFolder url="file://$MODULE_DIR$/src/test/jni" isTestSource="true" />
-      <sourceFolder url="file://$MODULE_DIR$/src/test/renderscript" isTestSource="true" />
-      <sourceFolder url="file://$MODULE_DIR$/src/test/shaders" isTestSource="true" />
       <sourceFolder url="file://$MODULE_DIR$/src/androidTest/res" type="java-test-resource" />
       <sourceFolder url="file://$MODULE_DIR$/src/androidTest/resources" type="java-test-resource" />
       <sourceFolder url="file://$MODULE_DIR$/src/androidTest/assets" type="java-test-resource" />
@@ -120,18 +112,32 @@
       <sourceFolder url="file://$MODULE_DIR$/src/androidTest/jni" isTestSource="true" />
       <sourceFolder url="file://$MODULE_DIR$/src/androidTest/renderscript" isTestSource="true" />
       <sourceFolder url="file://$MODULE_DIR$/src/androidTest/shaders" isTestSource="true" />
+      <sourceFolder url="file://$MODULE_DIR$/src/test/res" type="java-test-resource" />
+      <sourceFolder url="file://$MODULE_DIR$/src/test/resources" type="java-test-resource" />
+      <sourceFolder url="file://$MODULE_DIR$/src/test/assets" type="java-test-resource" />
+      <sourceFolder url="file://$MODULE_DIR$/src/test/aidl" isTestSource="true" />
+      <sourceFolder url="file://$MODULE_DIR$/src/test/java" isTestSource="true" />
+      <sourceFolder url="file://$MODULE_DIR$/src/test/jni" isTestSource="true" />
+      <sourceFolder url="file://$MODULE_DIR$/src/test/renderscript" isTestSource="true" />
+      <sourceFolder url="file://$MODULE_DIR$/src/test/shaders" isTestSource="true" />
       <excludeFolder url="file://$MODULE_DIR$/build/intermediates/assets" />
       <excludeFolder url="file://$MODULE_DIR$/build/intermediates/binaries" />
       <excludeFolder url="file://$MODULE_DIR$/build/intermediates/blame" />
       <excludeFolder url="file://$MODULE_DIR$/build/intermediates/bundles" />
       <excludeFolder url="file://$MODULE_DIR$/build/intermediates/classes" />
       <excludeFolder url="file://$MODULE_DIR$/build/intermediates/dependency-cache" />
-      <excludeFolder url="file://$MODULE_DIR$/build/intermediates/exploded-aar/com.android.support/animated-vector-drawable/24.1.1/jars" />
-      <excludeFolder url="file://$MODULE_DIR$/build/intermediates/exploded-aar/com.android.support/appcompat-v7/24.1.1/jars" />
+      <excludeFolder url="file://$MODULE_DIR$/build/intermediates/exploded-aar/com.android.support/animated-vector-drawable/24.2.0/jars" />
+      <excludeFolder url="file://$MODULE_DIR$/build/intermediates/exploded-aar/com.android.support/appcompat-v7/24.2.0/jars" />
+      <excludeFolder url="file://$MODULE_DIR$/build/intermediates/exploded-aar/com.android.support/design/24.2.0/jars" />
       <excludeFolder url="file://$MODULE_DIR$/build/intermediates/exploded-aar/com.android.support/mediarouter-v7/23.0.0/jars" />
-      <excludeFolder url="file://$MODULE_DIR$/build/intermediates/exploded-aar/com.android.support/recyclerview-v7/24.1.1/jars" />
-      <excludeFolder url="file://$MODULE_DIR$/build/intermediates/exploded-aar/com.android.support/support-v4/24.1.1/jars" />
-      <excludeFolder url="file://$MODULE_DIR$/build/intermediates/exploded-aar/com.android.support/support-vector-drawable/24.1.1/jars" />
+      <excludeFolder url="file://$MODULE_DIR$/build/intermediates/exploded-aar/com.android.support/recyclerview-v7/24.2.0/jars" />
+      <excludeFolder url="file://$MODULE_DIR$/build/intermediates/exploded-aar/com.android.support/support-compat/24.2.0/jars" />
+      <excludeFolder url="file://$MODULE_DIR$/build/intermediates/exploded-aar/com.android.support/support-core-ui/24.2.0/jars" />
+      <excludeFolder url="file://$MODULE_DIR$/build/intermediates/exploded-aar/com.android.support/support-core-utils/24.2.0/jars" />
+      <excludeFolder url="file://$MODULE_DIR$/build/intermediates/exploded-aar/com.android.support/support-fragment/24.2.0/jars" />
+      <excludeFolder url="file://$MODULE_DIR$/build/intermediates/exploded-aar/com.android.support/support-media-compat/24.2.0/jars" />
+      <excludeFolder url="file://$MODULE_DIR$/build/intermediates/exploded-aar/com.android.support/support-v4/24.2.0/jars" />
+      <excludeFolder url="file://$MODULE_DIR$/build/intermediates/exploded-aar/com.android.support/support-vector-drawable/24.2.0/jars" />
       <excludeFolder url="file://$MODULE_DIR$/build/intermediates/exploded-aar/com.google.android.gms/play-services-ads-lite/9.4.0/jars" />
       <excludeFolder url="file://$MODULE_DIR$/build/intermediates/exploded-aar/com.google.android.gms/play-services-ads/9.4.0/jars" />
       <excludeFolder url="file://$MODULE_DIR$/build/intermediates/exploded-aar/com.google.android.gms/play-services-analytics-impl/9.4.0/jars" />
@@ -200,6 +206,7 @@
     <orderEntry type="jdk" jdkName="Android API 24 Platform" jdkType="Android SDK" />
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="library" exported="" name="firebase-crash-9.4.0" level="project" />
+    <orderEntry type="library" exported="" name="support-core-utils-24.2.0" level="project" />
     <orderEntry type="library" exported="" name="play-services-basement-9.4.0" level="project" />
     <orderEntry type="library" exported="" name="firebase-storage-common-9.4.0" level="project" />
     <orderEntry type="library" exported="" name="play-services-maps-9.4.0" level="project" />
@@ -212,18 +219,20 @@
     <orderEntry type="library" exported="" name="play-services-location-9.4.0" level="project" />
     <orderEntry type="library" exported="" name="firebase-messaging-9.4.0" level="project" />
     <orderEntry type="library" exported="" name="play-services-wearable-9.4.0" level="project" />
+    <orderEntry type="library" exported="" name="design-24.2.0" level="project" />
     <orderEntry type="library" exported="" name="firebase-auth-module-9.4.0" level="project" />
     <orderEntry type="library" exported="" name="play-services-plus-9.4.0" level="project" />
-    <orderEntry type="library" exported="" name="support-annotations-24.1.1" level="project" />
+    <orderEntry type="library" exported="" name="support-annotations-24.2.0" level="project" />
     <orderEntry type="library" exported="" name="play-services-identity-9.4.0" level="project" />
     <orderEntry type="library" exported="" name="play-services-auth-base-9.4.0" level="project" />
-    <orderEntry type="library" exported="" name="firebase-iid-9.4.0" level="project" />
-    <orderEntry type="library" exported="" name="animated-vector-drawable-24.1.1" level="project" />
     <orderEntry type="library" exported="" name="play-services-ads-lite-9.4.0" level="project" />
+    <orderEntry type="library" exported="" name="firebase-iid-9.4.0" level="project" />
+    <orderEntry type="library" exported="" name="appcompat-v7-24.2.0" level="project" />
     <orderEntry type="library" exported="" name="firebase-database-9.4.0" level="project" />
-    <orderEntry type="library" exported="" name="appcompat-v7-24.1.1" level="project" />
+    <orderEntry type="library" exported="" name="animated-vector-drawable-24.2.0" level="project" />
     <orderEntry type="library" exported="" name="play-services-cast-framework-9.4.0" level="project" />
     <orderEntry type="library" exported="" name="play-services-nearby-9.4.0" level="project" />
+    <orderEntry type="library" exported="" name="support-core-ui-24.2.0" level="project" />
     <orderEntry type="library" exported="" name="play-services-ads-9.4.0" level="project" />
     <orderEntry type="library" exported="" name="firebase-auth-9.4.0" level="project" />
     <orderEntry type="library" exported="" name="play-services-appindexing-9.4.0" level="project" />
@@ -233,25 +242,29 @@
     <orderEntry type="library" exported="" name="play-services-analytics-9.4.0" level="project" />
     <orderEntry type="library" exported="" name="play-services-tagmanager-api-9.4.0" level="project" />
     <orderEntry type="library" exported="" name="play-services-safetynet-9.4.0" level="project" />
-    <orderEntry type="library" exported="" name="support-v4-24.1.1" level="project" />
+    <orderEntry type="library" exported="" name="support-v4-24.2.0" level="project" />
     <orderEntry type="library" exported="" name="play-services-cast-9.4.0" level="project" />
     <orderEntry type="library" exported="" name="play-services-appinvite-9.4.0" level="project" />
     <orderEntry type="library" exported="" name="play-services-gass-9.4.0" level="project" />
     <orderEntry type="library" exported="" name="play-services-tagmanager-9.4.0" level="project" />
     <orderEntry type="library" exported="" name="play-services-fitness-9.4.0" level="project" />
     <orderEntry type="library" exported="" name="play-services-places-9.4.0" level="project" />
+    <orderEntry type="library" exported="" name="recyclerview-v7-24.2.0" level="project" />
     <orderEntry type="library" exported="" name="firebase-storage-9.4.0" level="project" />
     <orderEntry type="library" exported="" name="firebase-analytics-9.4.0" level="project" />
-    <orderEntry type="library" exported="" name="recyclerview-v7-24.1.1" level="project" />
     <orderEntry type="library" exported="" name="firebase-config-9.4.0" level="project" />
+    <orderEntry type="library" exported="" name="support-fragment-24.2.0" level="project" />
     <orderEntry type="library" exported="" name="play-services-games-9.4.0" level="project" />
     <orderEntry type="library" exported="" name="play-services-panorama-9.4.0" level="project" />
+    <orderEntry type="library" exported="" name="support-compat-24.2.0" level="project" />
     <orderEntry type="library" exported="" name="firebase-common-9.4.0" level="project" />
     <orderEntry type="library" exported="" name="play-services-vision-9.4.0" level="project" />
-    <orderEntry type="library" exported="" name="mediarouter-v7-23.0.0" level="project" />
     <orderEntry type="library" exported="" name="play-services-clearcut-9.4.0" level="project" />
-    <orderEntry type="library" exported="" name="support-vector-drawable-24.1.1" level="project" />
+    <orderEntry type="library" exported="" name="mediarouter-v7-23.0.0" level="project" />
+    <orderEntry type="library" exported="" name="jsoup-1.9.2" level="project" />
     <orderEntry type="library" exported="" name="firebase-auth-common-9.4.0" level="project" />
+    <orderEntry type="library" exported="" name="support-vector-drawable-24.2.0" level="project" />
+    <orderEntry type="library" exported="" name="support-media-compat-24.2.0" level="project" />
     <orderEntry type="library" exported="" name="play-services-iid-9.4.0" level="project" />
     <orderEntry type="library" exported="" name="play-services-wallet-9.4.0" level="project" />
     <orderEntry type="library" exported="" name="play-services-contextmanager-9.4.0" level="project" />

@@ -1,7 +1,7 @@
 package eu.faircode.netguard;
 
+import android.Manifest;
 import android.app.Activity;
-import android.app.ActivityManager;
 import android.app.AlertDialog;
 import android.app.Notification;
 import android.app.PendingIntent;
@@ -17,9 +17,15 @@ import android.location.Criteria;
 import android.location.Location;
 import android.location.LocationManager;
 import android.net.Uri;
+import android.os.AsyncTask;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Message;
+import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentActivity;
+import android.support.v4.content.ContextCompat;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.LinearLayout;
@@ -39,12 +45,21 @@ import com.google.android.gms.maps.model.CircleOptions;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
 
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.text.DecimalFormat;
 import java.util.Calendar;
 import java.util.List;
 import java.util.TimeZone;
 import java.util.Timer;
 import java.util.TimerTask;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 //Linear layout in order to be able to add control elements to layout
 //Intents for proximity alert
@@ -83,25 +98,32 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     private static final String POINT_LATITUDE_KEY = "POINT_LATITUDE_KEY";
     private static final String POINT_LONGITUDE_KEY = "POINT_LONGITUDE_KEY";
 
-    private static int currentRadius=5;
-    private String mode="Leisure";
+    private static int currentRadius = 5;
+    private String mode = "Leisure";
 
     //PAS-Variables to switch mode only after a certain time
-    private int ticks =0;
-    private int leisureCnt=0;
-
+    private int ticks = 0;
+    private int leisureCnt = 0;
 
     //Handler for background UI task and Runnable
     ProximityIntentReceiver PIR;
 
     //Global variable for name of Shared Preferences
-    public static final String MyPREFERENCES = "MyPrefs" ;
+    public static final String MyPREFERENCES = "MyPrefs";
 
     //Show circles at current position indicating work or leisure mode on map
-    boolean showPosCircles=true;
+    boolean showPosCircles = true;
 
     private static final String PROX_ALERT_INTENT = "com.example.micha.googlemapdemoapp.ProximityIntentReceiver";
-    public static final String ACTION_RULES_CHANGED = "eu.faircode.netguard.ACTION_RULES_CHANGED";
+
+    //Callback for permission request
+    int MY_PERMISSIONS_FINE_LOCATION, MY_PERMISSIONS_REQUEST_COARSE_LOCATION, MY_PERMISSIONS_REQUEST_INTERNET;
+
+    //Rules table holds app rules and gets generated automatically
+    private String[][] rulesTable;
+    private int rulesTableCounter=0;
+    public String[][] categoryList;
+    int answerCount=0;
 
     //Register broadcast receiver in order to be able to stop and pause it later
     android.content.Intent reg;
@@ -114,44 +136,32 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     @Override
     protected void onCreate(Bundle savedInstanceState) {
 
+        //Check for permissions
+        if (ContextCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION) ==
+                PackageManager.PERMISSION_GRANTED &&
+                ContextCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_COARSE_LOCATION) ==
+                        PackageManager.PERMISSION_GRANTED &&
+                ContextCompat.checkSelfPermission(this, Manifest.permission.INTERNET) ==
+                        PackageManager.PERMISSION_GRANTED) {
+        }else{
+            //TO IMPLEMENT:
+            // Exit app, because permissions are not granted by user
+            //Ask user for fine location, coarse location and internet permission
+            ActivityCompat.requestPermissions(this, new String[]{android.Manifest.permission.ACCESS_FINE_LOCATION}, MY_PERMISSIONS_FINE_LOCATION);
+            ActivityCompat.requestPermissions(this, new String[]{android.Manifest.permission.ACCESS_COARSE_LOCATION}, MY_PERMISSIONS_REQUEST_COARSE_LOCATION);
+            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.INTERNET}, MY_PERMISSIONS_REQUEST_INTERNET);
+        }
+
         //Trick to be able to add control elements to layout
         LinearLayout linear = (LinearLayout) findViewById(R.id.linear);
         super.onCreate(savedInstanceState);
 
+        //Set layout for this activity
         setContentView(R.layout.activity_maps);
 
-        //add buttons dynamically
-        /*
-        Button myButton = new Button(MapsActivity.this);
-        myButton.setId(123);
-        myButton.setText("Push Me");
-
-        LinearLayout ll = (LinearLayout)findViewById(R.id.linear);
-        LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT);
-        ll.addView(myButton, lp);
-        */
-
-        //switchPref = (SwitchPreference)findViewById(R.layout.);
-        /*locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
-
-        locationManager.requestLocationUpdates(
-                LocationManager.GPS_PROVIDER,
-                MINIMUM_TIME_BETWEEN_UPDATE,
-                MINIMUM_DISTANCECHANGE_FOR_UPDATE,
-                (LocationListener) MyLocationListener()
-        );*/
-
-        //Avoid leaking of Activity
-        /*
-        FragmentManager fm = getFragmentManager();
-        mTaskFragment = (FragmentForConfigChange) fm.findFragmentByTag(TAG_TASK_FRAGMENT);
-
-        // If the Fragment is non-null, then it is currently being
-        // retained across a configuration change.
-        if (mTaskFragment == null) {
-            mTaskFragment = new FragmentForConfigChange();
-            fm.beginTransaction().add(mTaskFragment, TAG_TASK_FRAGMENT).commit();
-        }*/
+        //Get buttons in order to be able to access them later on
+        saveWorkLocation = (Button) findViewById(R.id.btn_work_location);
+        homeButton = (Button) findViewById(R.id.btn_home_location);
 
         // Obtain the SupportMapFragment and get notified when the map is ready to be used.
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.map);
@@ -166,11 +176,26 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         radiusZoom.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
             @Override
             public void onProgressChanged(SeekBar seekBar, int i, boolean b) {
-                //Toast.makeText(globalContext, "Left is: " + seekBar.getLeft() + ". Max is: " + seekBar.getMax(), Toast.LENGTH_SHORT).show();
-                currentRadius=i;
-                if(currentRadius<=0){
-                    currentRadius=1;
+                currentRadius = i*10;
+                if (currentRadius <= 0) {
+                    currentRadius = 10;
                 }
+
+                Criteria criteria = new Criteria();
+                criteria.setPowerRequirement(Criteria.POWER_HIGH);
+                criteria.setAccuracy(Criteria.ACCURACY_FINE);
+                provider = locationManager.getBestProvider(criteria, false);
+                Location location = locationManager.getLastKnownLocation(provider);
+
+                LatLng tempLoc = new LatLng(location.getLatitude(), location.getLongitude());
+
+                Location pointLocation = retrievelocationFromPreferences();
+                mMap.clear();
+                mMap.addCircle(new CircleOptions()
+                        .center(new LatLng(location.getLatitude(), location.getLongitude()))
+                        .radius((float)currentRadius)
+                        .strokeColor(Color.RED)
+                        .fillColor(0xAAD4F2));
             }
 
             @Override
@@ -179,11 +204,10 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
             @Override
             public void onStopTrackingTouch(SeekBar seekBar) {
-                Toast.makeText(MapsActivity.this, "Radius for work location set to " + String.valueOf(currentRadius) + "m." , Toast.LENGTH_SHORT).show();
+                //mMap.clear();
+                Toast.makeText(MapsActivity.this, "Radius for work location set to " + String.valueOf(currentRadius) + "m.", Toast.LENGTH_SHORT).show();
             }
         });
-
-
 
         //Get list of all installed apps
         final PackageManager pm = getPackageManager();
@@ -191,92 +215,58 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         intent.addCategory(Intent.CATEGORY_LAUNCHER);
         List<ResolveInfo> apps = pm.queryIntentActivities(intent, PackageManager.GET_META_DATA);
 
-        //Start intent in order to see check rules
+        //Build the rules table for all installed apps
+        //(that can be categorized by Google Play Store)
+        int x = apps.size();
+        int y = 3; //packagename, sub category name, work
 
-        String listOfAllApps="";
-        for(int i = 0; i<=apps.size()-1; i++){
-            //Filter out apps that are not allowed to be running
+        rulesTable = new String [x][y];
+        //Retrieve app rules (work / leisure)
+        String listOfAllApps = "";
 
-            //--> is app in AppRules table
-            listOfAllApps+= String.valueOf(apps.get(i).activityInfo.applicationInfo.packageName + "\n");
+        //Tell user that analyzing / categorisation of apps is starting
+        Toast.makeText(MapsActivity.this, "Analyzing your apps...", Toast.LENGTH_LONG).show();
+
+        //Deactivate button until apps are analyzed
+        homeButton.setText("Please wait...");
+        homeButton.setEnabled(false);
+
+        //Call URL in Google Play Store to retrieve the app's categories
+        for (int i = 0; i <= apps.size() - 1; i++) {
+            listOfAllApps += String.valueOf(apps.get(i).activityInfo.applicationInfo.packageName + "\n");
+
+            //Call every URL in a single thread, so the main thread won't be blocked simultaneously
+            String.valueOf(new GetCategory().execute(String.valueOf(apps.get(i).activityInfo.applicationInfo.packageName)));
         }
-        String packageName=apps.get(0).activityInfo.applicationInfo.packageName;
-        ActivityManager am = (ActivityManager)getSystemService(Activity.ACTIVITY_SERVICE);
-        am.killBackgroundProcesses(packageName);
-
-        //Save running app to shared preferences in order to later show it in SettingsActivity
-        //Button buttonRemove = (Button)addView.findViewById(R.id.remove);
-
-        //callAlertBox(listOfAllApps);
-
-        am = (ActivityManager) getSystemService(Context.ACTIVITY_SERVICE);
-        List<ActivityManager.RunningAppProcessInfo> runningAppProcessInfo = am.getRunningAppProcesses();
-
-        listOfAllApps="";
-        for(int i = 0; i<=runningAppProcessInfo.size()-1; i++){
-            //Filter out apps that are not allowed to be running
-
-            //--> is app in AppRules table
-            listOfAllApps+= String.valueOf(String.valueOf(runningAppProcessInfo.get(i).processName) + "\n");
-        }
-
-        //Show list of running apps
-       // callAlertBox("List of running apps: \n" + listOfAllApps);
-
-
-
-        //android.os.Process.killProcess(android.os.Process.myPid());
-
-        /*
-        try {
-            Process process = Runtime.getRuntime().exec("ps");
-            DataOutputStream os = new DataOutputStream(process.getOutputStream());
-            InputStream is = process.getInputStream();
-            //os.writeBytes("kill " + 1000 + "\n");
-            int readed = 0;
-            byte[] buff = new byte[4096];
-            os.writeBytes("exit\n");
-            os.flush();
-            process.destroy();
-
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        */
     }
 
     //Restore Activity after being destroyed
     //https://developer.android.com/training/basics/activity-lifecycle/recreating.html
 
     //When no lastknown location can be found, check for current location
-    private void startListening(){
+    private void startListening() {
         //To implement
-        //String locationProvider = LocationManager.NETWORK_PROVIDER;
-        //locationManager.requestLocationUpdates(locationProvider, 0, 0, locationListener);
     }
 
     private void saveProximityAlertPoint() {
-
         Criteria criteria = new Criteria();
         criteria.setPowerRequirement(Criteria.POWER_HIGH);
         criteria.setAccuracy(Criteria.ACCURACY_FINE);
         provider = locationManager.getBestProvider(criteria, true);
 
-        //To implement: Check for permission (necessary for lollipop and higher)
         Location location = locationManager.getLastKnownLocation(provider);
-        //Toast.makeText(this, "Providers are: " +  String.valueOf(locationManager.getAllProviders()), Toast.LENGTH_SHORT).show();
 
-        if (location==null) {
+        if (location == null) {
             Toast.makeText(this, "No last known location. Aborting...", Toast.LENGTH_LONG).show();
             return;
         }
 
-        Toast.makeText(this, "Proximity alert saved", Toast.LENGTH_SHORT).show();
+        Toast.makeText(this, "Your work location has been saved!", Toast.LENGTH_SHORT).show();
         saveCoordinates((float) location.getLatitude(), (float) location.getLongitude());
-        addProximityAlert(location.getLatitude(),  location.getLongitude());
+        addProximityAlert(location.getLatitude(), location.getLongitude());
         Circle circle = mMap.addCircle(new CircleOptions()
                 .center(new LatLng(location.getLatitude(), location.getLongitude()))
-                .radius((float)currentRadius)
+                .radius((float) currentRadius)
                 .strokeColor(Color.BLACK)
                 .fillColor(0x5500ff00));
     }
@@ -310,9 +300,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 proximityIntent // will be used to generate an Intent to fire when entry to or exit from the alert region is detected
         );
 
-        //Remove all markers
-        //mMap.clear();
-
         //Set marker in order to visualize position of current proximity alert
         LatLng currentPos2 = new LatLng(latitude, longitude);
         mMap.addMarker(new MarkerOptions().position(currentPos2).title("Work Position: " + latitude + " - " + longitude));
@@ -322,28 +309,12 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         registerReceiver(PIR, filter);
 
 
-
-/*
-        public static void scheduleTestAlarmReceiver(Context tempContext) {
-
-            Intent receiverIntent = new Intent(tempContext, MapsActivity.class);
-            PendingIntent sender = PendingIntent.getBroadcast(tempContext, 123456789, receiverIntent, 0);
-
-            AlarmManager alarmManager = (AlarmManager)tempContext.getSystemService(Context.ALARM_SERVICE);
-            alarmManager.setRepeating(AlarmManager.ELAPSED_REALTIME_WAKEUP, SystemClock.elapsedRealtime()+200, 200, sender);
-
-        }
-
-        scheduleTestAlarmReceiver(globalContext);
-        */
-
-        //Retrieve location in an intervall of five seconds.
-        //interval is currently fix, but should be made dynamic
-        //in the final version of the app.
-        new Timer(true).scheduleAtFixedRate(new TimerTask(){
+        //Retrieve location in an interval of five seconds.
+        //Interval is currently fix, should be made dynamic in future versions
+        new Timer(true).scheduleAtFixedRate(new TimerTask() {
 
             @Override
-            public void run(){
+            public void run() {
                 Criteria criteria = new Criteria();
                 criteria.setPowerRequirement(Criteria.POWER_HIGH);
                 criteria.setAccuracy(Criteria.ACCURACY_FINE);
@@ -356,8 +327,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 final float distance = location.distanceTo(pointLocation);
 
                 final DecimalFormat df = new DecimalFormat("0.00");
-                final float tempLat=(float)location.getLatitude();
-                final float tempLng=(float)location.getLongitude();
+                final float tempLat = (float) location.getLatitude();
+                final float tempLng = (float) location.getLongitude();
                 final Context tempContext = getApplicationContext();
 
                 SharedPreferences prefsDDA = getSharedPreferences(MyPREFERENCES, Context.MODE_PRIVATE);
@@ -366,22 +337,21 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 //Check what the prevailing mode is.
                 //Do nothing if current mode == prevailing mode:
                 //increment ticks if current mode and prevailing mode differ
-                boolean prevailingMode = prefsDDA.getBoolean("workMode",true);
+                boolean prevailingMode = prefsDDA.getBoolean("workMode", true);
 
-                //HIER WEITERMACHEN
-                //Find out what current mode is (is user in radius of work location?)
-                if(distance<currentRadius){
-                    mode="Work";
+                //Find out what current mode is (is user in radius around work location?)
+                if (distance < currentRadius) {
+                    mode = "Work";
                     prefsEditor.putBoolean("workMode", true);
 
-                }else{
-                    mode="Leisure";
+                } else {
+                    mode = "Leisure";
                     prefsEditor.putBoolean("workMode", false);
                 }
                 prefsEditor.commit();
 
                 //Only call broadcast when mode has changed
-                if(prevailingMode!=prefsDDA.getBoolean("workMode", true)) {
+                if (prevailingMode != prefsDDA.getBoolean("workMode", true)) {
                     System.out.println("MODE CHANGED. SENDING BROADCAST");
                     System.out.println("Prevailing mode: " + prevailingMode);
                     System.out.println("getBoolean" + prefsDDA.getBoolean("workMode", true));
@@ -395,6 +365,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
                     Rule.getRules(true, getApplicationContext());
                 }
+
                 //Show current mode in user interface.
                 //This has to run on a UI thread, because
                 // normal threads cannot access UI elements
@@ -403,50 +374,27 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                     public void run() {
                         updateResults(mode, String.valueOf(df.format(distance)) + "m", tempLat, tempLng, tempContext);
                     }
-                    });
+                });
 
                 //Output for debug and logging
                 System.out.println("Distance: " + String.valueOf(df.format(distance)) + "m" + ". LAT: " + location.getLatitude() + ". LNG: " + location.getLongitude());
-
-                /*
-                Circle circle = mMap.addCircle(new CircleOptions()
-                        .center(new LatLng(location.getLatitude(), location.getLongitude()))
-                        .radius((float)POINT_RADIUS)
-                        .strokeColor(Color.BLACK)
-                        .fillColor(0xAAD4F2));
-                        */
             }
+
             int i = setUpMap();
-        },0,5000);
-
-        // The four methods below are called by the TaskFragment when new
-        // progress updates or results are available. The MainActivity
-        // should respond by updating its UI to indicate the change.
-
-        /*@Override
-        public void onPreExecute() {  }
-
-        @Override
-        public void onProgressUpdate(int percent) { ... }
-
-        @Override
-        public void onCancelled() { ... }
-
-        @Override
-        public void onPostExecute() { ... }
-    */
+        }, 0, 5000);
     }
 
     public void updateResults(String textStr, String distanceStr, float tempLat, float tempLng, Context context) {
         Calendar c = Calendar.getInstance();
         c.setTimeZone(TimeZone.getTimeZone("Europe/Berlin"));
+        //Get time to be visually attached to locations (only for debugging purposes)
         int seconds = c.get(Calendar.SECOND);
         int minutes = c.get(Calendar.MINUTE);
         int hours = c.get(Calendar.HOUR);
 
         //Draw circles to show current position of user.
         //Color indicates the current mode (leisure or work)
-        if(showPosCircles) {
+        if (showPosCircles) {
             if (textStr == "Leisure") {
                 Circle circle = mMap.addCircle(new CircleOptions()
                         .center(new LatLng(tempLat, tempLng))
@@ -491,17 +439,16 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         criteria.setPowerRequirement(Criteria.POWER_HIGH);
         criteria.setAccuracy(Criteria.ACCURACY_FINE);
         provider = locationManager.getBestProvider(criteria, false);
-        //To implement: Ask for permissions at run time
         Location location = locationManager.getLastKnownLocation(provider);
 
-        if (location!=null) {
+        if (location != null) {
             String tempLAT = "";
             String tempLON = "";
 
             tempLAT = String.valueOf(location.getLatitude());
             tempLON = String.valueOf(location.getLongitude());
 
-            Toast.makeText(this, "NETWORK --- Latitude: " + tempLAT + " - Longitude: " + tempLON, Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, provider + " - Latitude: " + tempLAT + " - Longitude: " + tempLON, Toast.LENGTH_SHORT).show();
         }
     }
 
@@ -517,12 +464,15 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         public void onLocationChanged(Location location) {
             Location pointLocation = retrievelocationFromPreferences();
             float distance = location.distanceTo(pointLocation);
-            Toast.makeText(MapsActivity.this, "Distance from Point:"+distance, Toast.LENGTH_LONG).show();
+            Toast.makeText(MapsActivity.this, "Distance from Point:" + distance, Toast.LENGTH_LONG).show();
         }
+
         public void onStatusChanged(String s, int i, Bundle b) {
         }
+
         public void onProviderDisabled(String s) {
         }
+
         public void onProviderEnabled(String s) {
         }
     }
@@ -530,19 +480,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     @Override
     public void onMapReady(GoogleMap googleMap) {
         mMap = googleMap;
-
-        /*
-        // Dummy markers
-        // Add a marker in Sydney and move the camera
-        LatLng sydney = new LatLng(-34, 151);
-        mMap.addMarker(new MarkerOptions().position(sydney).title("Home Location"));
-        mMap.moveCamera(CameraUpdateFactory.newLatLng(sydney));
-        mMap.animateCamera(CameraUpdateFactory.zoomTo(11));
-
-        LatLng currentPos = new LatLng(-33, 150);
-        mMap.addMarker(new MarkerOptions().position(currentPos).title("Work Location"));
-
-        */
 
         //Enable Google Maps to retrieve my current location
         mMap.setMyLocationEnabled(true);
@@ -556,18 +493,11 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         provider = locationManager.getBestProvider(criteria, false);
         Location location = locationManager.getLastKnownLocation(provider);
 
-        if(location!=null) {
+        if (location != null) {
             LatLng currentPos2 = new LatLng(location.getLatitude(), location.getLongitude());
-            /*mMap.addMarker(new MarkerOptions().position(currentPos2).title("NEW Location: " + location.getLatitude() + " - " + location.getLongitude()));
-            mMap.moveCamera(CameraUpdateFactory.newLatLng(currentPos2));
-            mMap.animateCamera(CameraUpdateFactory.zoomTo(18));
-            */
         }
 
-        //Get buttons
-        saveWorkLocation = (Button) findViewById(R.id.btn_work_location);
-        homeButton = (Button) findViewById(R.id.btn_home_location);
-
+        //Set onClick events for buttons
         saveWorkLocation.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -580,10 +510,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         homeButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                //setContentView(R.layout.home);
-                //setContentView(R.layout.home);
                 Intent intent = new Intent(MapsActivity.this, HomeActivity.class);
-
                 startActivity(intent);
 
                 //ToDo: Unregister receiver because of error message
@@ -643,15 +570,13 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         );
         AppIndex.AppIndexApi.end(client, viewAction);
         client.disconnect();
-
-
     }
 
-    //Method to provide alert box function on runtime
+    //Method to provide alert box function at runtime
     //Especially helpful when called by thread
     public void callAlertBox(String msgToDisplay) {
         AlertDialog alertDialog = new AlertDialog.Builder(MapsActivity.this).create();
-        alertDialog.setTitle("Alert");
+        alertDialog.setTitle("List of installed apps");
         alertDialog.setMessage(msgToDisplay);
         alertDialog.setButton(AlertDialog.BUTTON_NEUTRAL, "OK",
                 new DialogInterface.OnClickListener() {
@@ -668,44 +593,41 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         Location location = locationManager.getLastKnownLocation(provider);
 
         Circle circle = mMap.addCircle(new CircleOptions()
-                .center(new LatLng(location.getLatitude(), location.getLongitude()+0.1))
-                .radius((float)POINT_RADIUS)
+                .center(new LatLng(location.getLatitude(), location.getLongitude()))
+                .radius((float) POINT_RADIUS)
                 .strokeColor(Color.BLACK)
                 .fillColor(Color.BLUE));
 
         return 0;
     }
 
-
-
-
-    public static class FragmentForConfigChange extends Fragment{
+    public static class FragmentForConfigChange extends Fragment {
         interface TaskCallbacks {
             void onPreExecute();
+
             void onProgressUpdate(int percent);
+
             void onCancelled();
+
             void onPostExecute();
         }
 
 
         private TaskCallbacks mCallbacks;
-        //private DummyTask mTask;
 
         public void onCreate(Bundle savedInstanceState) {
             super.onCreate(savedInstanceState);
             setRetainInstance(true);
         }
 
-
         public void onAttach(Activity activity) {
             super.onAttach(activity);
             mCallbacks = (TaskCallbacks) activity;
         }
 
-        public void FragmentForConfigChange(Context context){
+        public void FragmentForConfigChange(Context context) {
             return;
         }
-
 
         @Override
         public void setRetainInstance(boolean retain) {
@@ -713,10 +635,208 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             return;
         }
 
-
-
     }
 
+    //Create handler to display messages from async task
+    Handler myHandler = new Handler() {
 
+        @Override
+        public void handleMessage(Message msg) {
+            switch (msg.what) {
+                case 0:
+                    Toast.makeText(MapsActivity.this, "Your apps have been successfully analyzed!", Toast.LENGTH_LONG).show();
+                    homeButton.setText("HOME");
+                    homeButton.setEnabled(true);
+                    break;
+                case 1:
+                    homeButton.setText("Analyzing app " + answerCount + "/" + rulesTable.length);
+                    break;
+                default:
+                    break;
+            }
+        }
+    };
 
+    //Get category of a certain app by querying Google Play Store
+    public class GetCategory extends AsyncTask<String , Void ,String> {
+        String server_response;
+        public String [][] categoryList;
+
+        @Override
+        protected String doInBackground(String... strings) {
+
+            URL url;
+            HttpURLConnection urlConnection = null;
+
+            try {
+                System.out.println("SUBMITTED APP NAME: " + strings[0]);
+
+                //Retrieve app's web page from Google Play Store (in english)
+                url = new URL("https://play.google.com/store/apps/details?id=" + strings[0] + "&hl=en");
+                System.out.println("URL: " +url);
+                urlConnection = (HttpURLConnection) url.openConnection();
+
+                int responseCode = urlConnection.getResponseCode();
+                answerCount++;
+                if(responseCode == HttpURLConnection.HTTP_OK){
+                    server_response = readStream(urlConnection.getInputStream(), strings[0]);
+                    if(strings[0].equals("com.whatsapp")){
+                        System.out.println(strings[0]);
+                        System.out.println("server_response: " + server_response);
+                    }
+                }
+
+            } catch (MalformedURLException e) {
+                e.printStackTrace();
+            } catch (IOException e) {
+                //No network connection etc.: Tell user to switch on network and to turn off firewall
+                e.printStackTrace();
+            }
+
+            return null;
+        }
+
+        @Override
+        protected void onPostExecute(String s) {
+            System.out.println("rulesTableCounter" + rulesTableCounter);
+            System.out.println("rulesTable.length" + rulesTable.length);
+
+            //All apps have been categorized
+            if(answerCount>=rulesTable.length){
+                myHandler.sendEmptyMessage(0);
+                System.out.println("GETTING CATEGORIES FINISHED");
+            }else{
+                myHandler.sendEmptyMessage(1);
+            }
+
+            Log.e("Response", "" + server_response);
+        }
+    }
+
+    // Converting InputStream to String
+    private String readStream(InputStream in, String packageName) {
+        BufferedReader reader = null;
+        StringBuffer response = new StringBuffer();
+        try {
+            reader = new BufferedReader(new InputStreamReader(in));
+            String line = "";
+            while ((line = reader.readLine()) != null) {
+
+                //Find line containing "category"
+                if(line.contains("category")) {
+                    //Cut out the specific categories
+                    Pattern pattern = Pattern.compile("<a class=\"document-subtitle category\" href=\"/store/apps/category/(.*?)\">");
+                    Matcher matcher = pattern.matcher(line);
+
+                    while (matcher.find()) {
+                        //Erase clutter around category
+                        String temp=matcher.group(0);
+                        line = matcher.group(0).replace("<a class=\"document-subtitle category\" href=\"/store/apps/category/", "");
+                        line = line.replace("\">", "");
+                        System.out.println("CATEGORY DETECTED FOR :" + packageName + " CATEGORY IS: " + line);
+
+                        //Write the app's category to an array
+                        //Data structure: packagename, sub category name, work
+                        rulesTable[rulesTableCounter][0] = packageName;
+                        rulesTable[rulesTableCounter][1] = line;
+
+                        //Get category from sub category (e.g. GAME_ROLE_PLAYING --> GAMES)
+                        String permissionMode= getPermissionMode(rulesTable[rulesTableCounter][1]);
+                        System.out.println(permissionMode);
+
+                        SharedPreferences prefsDDA = getSharedPreferences(MyPREFERENCES, Context.MODE_PRIVATE);
+                        SharedPreferences.Editor prefsEditor = prefsDDA.edit();
+
+                        prefsEditor.putString(packageName, permissionMode);
+                        prefsEditor.commit();
+
+                        rulesTableCounter++;
+                    }
+                }
+                response.insert(0,line);
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        } finally {
+            if (reader != null) {
+                try {
+                    reader.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+
+        return response.toString();
+    }
+
+    //List of all categories downloaded from Google Play Store and parametrized manually
+    private String getPermissionMode(String category){
+        String[][] categoryList = {
+                {"Android Wear", "leisure"},
+                {"Books & Reference", "leisure"},
+                {"Business", "work"},
+                {"Comics", "leisure"},
+                {"Communication", "leisure"},
+                {"Education", "leisure"},
+                {"Entertainment", "leisure"},
+                {"Finance", "leisure"},
+                {"Health & Fitness", "leisure"},
+                {"Libraries & Demo", "work"},
+                {"Lifestyle", "leisure"},
+                {"Media & Video", "leisure"},
+                {"Medical", "leisure"},
+                {"Music & Audio", "leisure"},
+                {"News & Magazines", "leisure"},
+                {"Personalization", "work"},
+                {"Photography", "leisure"},
+                {"Productivity", "work"},
+                {"Shopping", "leisure"},
+                {"Social", "leisure"},
+                {"Sports", "leisure"},
+                {"Tools", "work"},
+                {"Transportation", "work"},
+                {"Travel & Local", "work"},
+                {"Weather", "leisure"},
+                {"Games", "leisure"},
+                {"Action", "leisure"},
+                {"Adventure", "leisure"},
+                {"Arcade", "leisure"},
+                {"Board", "leisure"},
+                {"Card", "leisure"},
+                {"Casino", "leisure"},
+                {"Casual", "leisure"},
+                {"Educational", "leisure"},
+                {"Music", "leisure"},
+                {"Puzzle", "leisure"},
+                {"Racing", "leisure"},
+                {"Role Playing", "leisure"},
+                {"Simulation", "leisure"},
+                {"Sports", "leisure"},
+                {"Strategy", "leisure"},
+                {"Trivia", "leisure"},
+                {"Word", "leisure"},
+                {"Family", "leisure"},
+                {"Ages 5 & Under", "leisure"},
+                {"Ages 6-8", "leisure"},
+                {"Ages 9 & Up", "leisure"},
+                {"Popular Characters", "leisure"},
+                {"Action & Adventure", "leisure"},
+                {"Brain Games", "leisure"},
+                {"Creativity", "leisure"},
+                {"Education", "leisure"},
+                {"Music & Video", "leisure"},
+                {"Pretend Play", "leisure"}
+        };
+
+        System.out.println("category: " + category);
+
+        for(int i=0;i<categoryList.length;i++) {
+            if (categoryList[i][0].toUpperCase().equals(category)){
+                System.out.println("PERMISSION IS: " + categoryList[i][1]);
+                return categoryList[i][1];
+            }
+        }
+        return "";
+    }
 }
